@@ -26,7 +26,9 @@
     background: #E04B2A; border: 3px solid #A8321A;
     display: flex; align-items: center; justify-content: center;
     flex-direction: column; flex-shrink: 0;
+    cursor: grab;
   }
+  .housing:active { cursor: grabbing; }
   .housing-inner {
     width: 22px; height: 22px; border-radius: 50%;
     background: #C03C22; border: 2px solid #fff;
@@ -36,7 +38,7 @@
     width: 64px; background: #F5C842;
     border: 2px solid #C8951A; border-top: none;
     border-radius: 0 0 6px 6px; overflow: hidden;
-    min-height: 4px; cursor: ns-resize;
+    min-height: 4px;
   }
   canvas { display: block; width: 64px; }
   .hook {
@@ -45,16 +47,36 @@
     cursor: ns-resize; display: flex; align-items: center;
     justify-content: center; font-size: 12px; color: #555;
   }
+  /* Wrapper yang bisa di-drag dan di-rotate */
+  #meter-wrapper {
+    position: fixed;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    touch-action: none;
+  }
+  .rotate-btn {
+    width: 64px; height: 24px; background: #555;
+    border-radius: 4px; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; color: #fff;
+    cursor: pointer; margin-bottom: 4px;
+    user-select: none;
+  }
+  .rotate-btn:hover { background: #333; }
 </style>
 </head>
 <body>
-<div class="tape-column">
-  <div class="housing">
-    <div class="housing-inner"></div>
-    <span class="housing-label">METERAN</span>
+
+<div id="meter-wrapper">
+  <div class="rotate-btn" id="rotate-btn">↻ Putar</div>
+  <div class="tape-column">
+    <div class="housing" id="housing">
+      <div class="housing-inner"></div>
+      <span class="housing-label">METERAN</span>
+    </div>
+    <div id="tape-wrap"><canvas id="ruler-canvas"></canvas></div>
+    <div class="hook" id="hook">⟷</div>
   </div>
-  <div id="tape-wrap"><canvas id="ruler-canvas"></canvas></div>
-  <div class="hook" id="hook">⟷</div>
 </div>
 
 <script>
@@ -62,13 +84,17 @@ const tapeWrap = document.getElementById('tape-wrap');
 const hook = document.getElementById('hook');
 const canvas = document.getElementById('ruler-canvas');
 const ctx = canvas.getContext('2d');
+const wrapper = document.getElementById('meter-wrapper');
+const housing = document.getElementById('housing');
+const rotateBtn = document.getElementById('rotate-btn');
 
 const MAX_CM = 30;
 const TAPE_W = 64;
 const PX_PER_CM = 10;
 
-let tapePx = 0, dragging = false, startY = 0, startTape = 0;
+let tapePx = 0;
 
+// ── DRAW RULER ──────────────────────────────────────────────
 function drawRuler(heightPx) {
   const totalCm = Math.ceil(heightPx / PX_PER_CM) + 1;
   const h = Math.max(totalCm * PX_PER_CM + 10, 10);
@@ -111,12 +137,75 @@ function updateTape(px) {
 
 drawRuler(0);
 
-hook.addEventListener('mousedown', e => { dragging = true; startY = e.clientY; startTape = tapePx; document.body.style.cursor = 'ns-resize'; e.preventDefault(); });
-hook.addEventListener('touchstart', e => { dragging = true; startY = e.touches[0].clientY; startTape = tapePx; e.preventDefault(); }, { passive: false });
-document.addEventListener('mousemove', e => { if (dragging) updateTape(startTape + (e.clientY - startY)); });
-document.addEventListener('touchmove', e => { if (dragging) { updateTape(startTape + (e.touches[0].clientY - startY)); e.preventDefault(); } }, { passive: false });
-document.addEventListener('mouseup', () => { dragging = false; document.body.style.cursor = ''; });
-document.addEventListener('touchend', () => { dragging = false; });
+// ── DRAG TAPE (hook) ─────────────────────────────────────────
+let tapeDragging = false, tapeStartY = 0, tapeStartPx = 0;
+
+hook.addEventListener('mousedown', e => {
+  tapeDragging = true; tapeStartY = e.clientY; tapeStartPx = tapePx;
+  document.body.style.cursor = 'ns-resize'; e.preventDefault(); e.stopPropagation();
+});
+hook.addEventListener('touchstart', e => {
+  tapeDragging = true; tapeStartY = e.touches[0].clientY; tapeStartPx = tapePx;
+  e.preventDefault(); e.stopPropagation();
+}, { passive: false });
+
+document.addEventListener('mousemove', e => {
+  if (tapeDragging) updateTape(tapeStartPx + (e.clientY - tapeStartY));
+});
+document.addEventListener('touchmove', e => {
+  if (tapeDragging) { updateTape(tapeStartPx + (e.touches[0].clientY - tapeStartY)); e.preventDefault(); }
+}, { passive: false });
+document.addEventListener('mouseup', () => { tapeDragging = false; document.body.style.cursor = ''; });
+document.addEventListener('touchend', () => { tapeDragging = false; });
+
+// ── DRAG WRAPPER (housing) ───────────────────────────────────
+let moveDragging = false, moveStartX = 0, moveStartY = 0;
+let wrapX = window.innerWidth / 2 - 32, wrapY = 50;
+let rotation = 0;
+
+function applyTransform() {
+  wrapper.style.left = wrapX + 'px';
+  wrapper.style.top  = wrapY + 'px';
+  wrapper.style.transform = `rotate(${rotation}deg)`;
+}
+applyTransform();
+
+housing.addEventListener('mousedown', e => {
+  moveDragging = true;
+  moveStartX = e.clientX - wrapX;
+  moveStartY = e.clientY - wrapY;
+  e.preventDefault();
+});
+housing.addEventListener('touchstart', e => {
+  moveDragging = true;
+  moveStartX = e.touches[0].clientX - wrapX;
+  moveStartY = e.touches[0].clientY - wrapY;
+  e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('mousemove', e => {
+  if (moveDragging) {
+    wrapX = e.clientX - moveStartX;
+    wrapY = e.clientY - moveStartY;
+    applyTransform();
+  }
+});
+document.addEventListener('touchmove', e => {
+  if (moveDragging) {
+    wrapX = e.touches[0].clientX - moveStartX;
+    wrapY = e.touches[0].clientY - moveStartY;
+    applyTransform();
+    e.preventDefault();
+  }
+}, { passive: false });
+document.addEventListener('mouseup', () => { moveDragging = false; });
+document.addEventListener('touchend', () => { moveDragging = false; });
+
+// ── ROTATE BUTTON ────────────────────────────────────────────
+rotateBtn.addEventListener('click', () => {
+  rotation = (rotation + 90) % 360;
+  applyTransform();
+});
 </script>
 </body>
 </html>
