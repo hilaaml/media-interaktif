@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meteran Vertikal</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    padding: 16px 8px;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+    user-select: none;
+  }
+
+  /* Housing / reel at top */
+  .housing {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #E04B2A;
+    border: 3px solid #A8321A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    flex-shrink: 0;
+    cursor: default;
+  }
+  .housing-inner {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #C03C22; border: 2px solid #fff;
+  }
+  .housing-label {
+    font-size: 7px; font-weight: 700; color: #fff;
+    margin-top: 2px; letter-spacing: 0.5px;
+  }
+
+  /* Tape column */
+  .tape-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  /* The tape strip */
+  #tape-wrap {
+    width: 64px;
+    background: #F5C842;
+    border: 2px solid #C8951A;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    min-height: 4px;
+    cursor: ns-resize;
+  }
+
+  canvas {
+    display: block;
+    width: 64px;
+  }
+
+  /* Hook at bottom */
+  .hook {
+    width: 48px;
+    height: 18px;
+    background: #ccc;
+    border: 2px solid #999;
+    border-radius: 4px;
+    cursor: ns-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #555;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  /* Info panel */
+  .info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 70px;
+  }
+
+  .card {
+    background: #f5f5f0;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px 14px;
+    min-width: 110px;
+    text-align: center;
+  }
+  .card-label {
+    font-size: 10px;
+    color: #888;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .card-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #222;
+    line-height: 1;
+  }
+  .card-unit {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+  }
+
+  .btn-reset {
+    margin-top: 4px;
+    padding: 7px 14px;
+    font-size: 12px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #ccc;
+    color: #444;
+    cursor: pointer;
+    width: 100%;
+  }
+  .btn-reset:hover { background: #f0f0f0; }
+
+  .hint {
+    font-size: 10px;
+    color: #aaa;
+    text-align: center;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="tape-column">
+    <div class="housing">
+      <div class="housing-inner"></div>
+      <span class="housing-label">METERAN</span>
+    </div>
+    <div id="tape-wrap">
+      <canvas id="ruler-canvas"></canvas>
+    </div>
+    <div class="hook" id="hook">⟷</div>
+  </div>
+
+  <div class="info-panel">
+    <div class="card">
+      <div class="card-label">Panjang</div>
+      <div class="card-value" id="cm-val">0</div>
+      <div class="card-unit">cm</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Meter</div>
+      <div class="card-value" id="m-val">0.00</div>
+      <div class="card-unit">m</div>
+    </div>
+    <button class="btn-reset" id="btn-reset">Gulung ulang</button>
+    <p class="hint">Seret ujung bawah<br>meteran ke bawah</p>
+  </div>
+
+</div>
+
+<script>
+const tapeWrap = document.getElementById('tape-wrap');
+const hook = document.getElementById('hook');
+const canvas = document.getElementById('ruler-canvas');
+const ctx = canvas.getContext('2d');
+const cmVal = document.getElementById('cm-val');
+const mVal = document.getElementById('m-val');
+const btnReset = document.getElementById('btn-reset');
+
+const MAX_CM = 200;
+const TAPE_W = 64;
+const PX_PER_10CM = 30;
+const PX_PER_CM = PX_PER_10CM / 10;
+
+let tapePx = 0;
+let dragging = false;
+let startY = 0;
+let startTape = 0;
+
+function drawRuler(heightPx) {
+  const totalCm = Math.ceil(heightPx / PX_PER_CM) + 1;
+  const h = Math.max(totalCm * PX_PER_CM + 10, 10);
+  canvas.width = TAPE_W;
+  canvas.height = h;
+  canvas.style.height = h + 'px';
+
+  ctx.fillStyle = '#F5C842';
+  ctx.fillRect(0, 0, TAPE_W, h);
+
+  ctx.strokeStyle = '#8A6010';
+  ctx.fillStyle = '#5A3A08';
+
+  for (let cm = 0; cm <= totalCm; cm++) {
+    const y = cm * PX_PER_CM;
+    let tickW;
+    if (cm % 10 === 0) {
+      tickW = 30; ctx.lineWidth = 1.5;
+    } else if (cm % 5 === 0) {
+      tickW = 20; ctx.lineWidth = 1;
+    } else {
+      tickW = 12; ctx.lineWidth = 0.8;
+    }
+    ctx.beginPath();
+    ctx.moveTo(TAPE_W, y);
+    ctx.lineTo(TAPE_W - tickW, y);
+    ctx.stroke();
+  }
+
+  ctx.font = 'bold 11px Arial, sans-serif';
+  ctx.textAlign = 'right';
+  for (let cm = 10; cm <= totalCm; cm += 10) {
+    const y = cm * PX_PER_CM;
+    ctx.fillText(cm.toString(), TAPE_W - 32, y + 4);
+  }
+
+  ctx.font = 'bold 8px Arial, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('cm', 3, h - 4);
+}
+
+function updateTape(px) {
+  tapePx = Math.max(0, Math.min(px, MAX_CM * PX_PER_CM));
+  tapeWrap.style.height = tapePx + 'px';
+  drawRuler(tapePx);
+
+  const cm = Math.round(tapePx / PX_PER_CM);
+  cmVal.textContent = cm;
+  mVal.textContent = (cm / 100).toFixed(2);
+}
+
+drawRuler(0);
+updateTape(0);
+
+hook.addEventListener('mousedown', e => {
+  dragging = true;
+  startY = e.clientY;
+  startTape = tapePx;
+  document.body.style.cursor = 'ns-resize';
+  e.preventDefault();
+});
+
+hook.addEventListener('touchstart', e => {
+  dragging = true;
+  startY = e.touches[0].clientY;
+  startTape = tapePx;
+  e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  updateTape(startTape + (e.clientY - startY));
+});
+
+document.addEventListener('touchmove', e => {
+  if (!dragging) return;
+  updateTape(startTape + (e.touches[0].clientY - startY));
+  e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('mouseup', () => { dragging = false; document.body.style.cursor = ''; });
+document.addEventListener('touchend', () => { dragging = false; });
+
+btnReset.addEventListener('click', () => {
+  let cur = tapePx;
+  const step = () => {
+    cur = Math.max(0, cur - 15);
+    updateTape(cur);
+    if (cur > 0) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+});
+</script>
+</body>
+</html>
