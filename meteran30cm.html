@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meteran Vertikal</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 16px 8px;
+    font-family: Arial, sans-serif;
+  }
+  .tape-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+  }
+  .housing {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: #E04B2A; border: 3px solid #A8321A;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; flex-shrink: 0;
+  }
+  .housing-inner {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #C03C22; border: 2px solid #fff;
+  }
+  .housing-label { font-size: 7px; font-weight: 700; color: #fff; margin-top: 2px; letter-spacing: 0.5px; }
+  #tape-wrap {
+    width: 64px; background: #F5C842;
+    border: 2px solid #C8951A; border-top: none;
+    border-radius: 0 0 6px 6px; overflow: hidden;
+    min-height: 4px; cursor: ns-resize;
+  }
+  canvas { display: block; width: 64px; }
+  .hook {
+    width: 48px; height: 18px; background: #ccc;
+    border: 2px solid #999; border-radius: 4px;
+    cursor: ns-resize; display: flex; align-items: center;
+    justify-content: center; font-size: 12px; color: #555;
+  }
+</style>
+</head>
+<body>
+<div class="tape-column">
+  <div class="housing">
+    <div class="housing-inner"></div>
+    <span class="housing-label">METERAN</span>
+  </div>
+  <div id="tape-wrap"><canvas id="ruler-canvas"></canvas></div>
+  <div class="hook" id="hook">⟷</div>
+</div>
+
+<script>
+const tapeWrap = document.getElementById('tape-wrap');
+const hook = document.getElementById('hook');
+const canvas = document.getElementById('ruler-canvas');
+const ctx = canvas.getContext('2d');
+
+const MAX_CM = 30;
+const TAPE_W = 64;
+const PX_PER_CM = 10;
+
+let tapePx = 0, dragging = false, startY = 0, startTape = 0;
+
+function drawRuler(heightPx) {
+  const totalCm = Math.ceil(heightPx / PX_PER_CM) + 1;
+  const h = Math.max(totalCm * PX_PER_CM + 10, 10);
+  canvas.width = TAPE_W;
+  canvas.height = h;
+  canvas.style.height = h + 'px';
+
+  ctx.fillStyle = '#F5C842';
+  ctx.fillRect(0, 0, TAPE_W, h);
+
+  for (let mm = 0; mm <= totalCm * 10; mm++) {
+    const y = mm * (PX_PER_CM / 10);
+    let tickW, lw;
+    if (mm % 100 === 0)     { tickW = 32; lw = 1.5; }
+    else if (mm % 50 === 0) { tickW = 24; lw = 1.2; }
+    else if (mm % 10 === 0) { tickW = 18; lw = 1.0; }
+    else if (mm % 5 === 0)  { tickW = 12; lw = 0.7; }
+    else                    { tickW = 7;  lw = 0.5; }
+    ctx.strokeStyle = '#8A6010';
+    ctx.lineWidth = lw;
+    ctx.beginPath();
+    ctx.moveTo(TAPE_W, y);
+    ctx.lineTo(TAPE_W - tickW, y);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = '#5A3A08';
+  ctx.font = 'bold 11px Arial, sans-serif';
+  ctx.textAlign = 'right';
+  for (let cm = 5; cm <= totalCm; cm += 5) {
+    ctx.fillText(cm, TAPE_W - 34, cm * PX_PER_CM + 4);
+  }
+}
+
+function updateTape(px) {
+  tapePx = Math.max(0, Math.min(px, MAX_CM * PX_PER_CM));
+  tapeWrap.style.height = tapePx + 'px';
+  drawRuler(tapePx);
+}
+
+drawRuler(0);
+
+hook.addEventListener('mousedown', e => { dragging = true; startY = e.clientY; startTape = tapePx; document.body.style.cursor = 'ns-resize'; e.preventDefault(); });
+hook.addEventListener('touchstart', e => { dragging = true; startY = e.touches[0].clientY; startTape = tapePx; e.preventDefault(); }, { passive: false });
+document.addEventListener('mousemove', e => { if (dragging) updateTape(startTape + (e.clientY - startY)); });
+document.addEventListener('touchmove', e => { if (dragging) { updateTape(startTape + (e.touches[0].clientY - startY)); e.preventDefault(); } }, { passive: false });
+document.addEventListener('mouseup', () => { dragging = false; document.body.style.cursor = ''; });
+document.addEventListener('touchend', () => { dragging = false; });
+</script>
+</body>
+</html>
