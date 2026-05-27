@@ -1,297 +1,207 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meteran</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    width: 100%; height: 100%;
-    background: transparent;
-    overflow: hidden;
-  }
-  #scene {
-    width: 100vw; height: 100vh;
-    position: relative;
-  }
-  #meter-group {
-    position: absolute;
-    top: 80px; left: 80px;
-    transform-origin: 32px 32px;
-    cursor: move;
-    touch-action: none;
-  }
-  #housing {
-    width: 64px; height: 64px; border-radius: 50%;
-    background: #E04B2A; border: 3px solid #A8321A;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column;
-    position: relative; z-index: 2;
-    cursor: move;
-  }
-  .housing-inner {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: #C03C22; border: 2px solid #fff;
-  }
-  .housing-label {
-    font-size: 7px; font-weight: 700; color: #fff;
-    margin-top: 2px; letter-spacing: 0.5px;
-    font-family: Arial, sans-serif;
-  }
-  #tape-wrap {
-    position: absolute;
-    top: 64px; left: 0;
-    width: 64px;
-    background: #F5C842;
-    border: 2px solid #C8951A;
-    border-top: none;
-    border-radius: 0 0 6px 6px;
-    overflow: hidden;
-    height: 0;
-  }
-  #ruler-canvas { display: block; width: 64px; }
-  #hook {
-    position: absolute;
-    left: 8px;
-    width: 48px; height: 18px;
-    background: #ccc; border: 2px solid #999;
-    border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; color: #555;
-    cursor: ns-resize;
-    font-family: Arial, sans-serif;
-    z-index: 3;
-  }
-  #btn-rotate {
-    position: absolute;
-    top: 14px; left: 68px;
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: #fff;
-    border: 1.5px solid #bbb;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    z-index: 10;
-    font-size: 14px;
-    line-height: 1;
-    user-select: none;
-  }
-  #btn-rotate:hover { background: #f0f0f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+#meter-root { width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; position: relative; }
+#layer-dial { position: absolute; pointer-events: none; }
+#layer-meter { position: absolute; pointer-events: none; }
+#dial-svg { pointer-events: none; display: block; }
+#dial-hitarea { pointer-events: all; cursor: grab; fill: none; }
+#dial-hitarea:active { cursor: grabbing; }
+#housing {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: #E04B2A; border: 3px solid #A8321A;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; cursor: grab; pointer-events: all;
+  position: absolute; top: 0; left: 0;
+}
+#housing:active { cursor: grabbing; }
+.h-inner { width: 22px; height: 22px; border-radius: 50%; background: #C03C22; border: 2px solid #fff; }
+.h-label { font-size: 7px; font-weight: 700; color: #fff; margin-top: 2px; letter-spacing: 0.5px; }
+#tape-group { position: absolute; top: 0; left: 0; pointer-events: none; transform-origin: 32px 32px; }
+#tape-wrap { width: 64px; background: #F5C842; border: 2px solid #C8951A; border-top: none; border-radius: 0 0 6px 6px; overflow: hidden; position: absolute; top: 64px; left: 0; }
+canvas { display: block; width: 64px; }
+#hook { width: 48px; height: 16px; background: #ccc; border: 2px solid #999; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center; font-size: 11px; color: #555;
+  cursor: ns-resize; pointer-events: all; position: absolute; left: 8px; }
 </style>
-</head>
-<body>
-<div id="scene">
-  <div id="meter-group">
+
+<div id="meter-root">
+  <div id="layer-dial">
+    <svg id="dial-svg" width="108" height="108" viewBox="0 0 108 108">
+      <circle cx="54" cy="54" r="48" fill="none" stroke="#ccc" stroke-width="7" stroke-dasharray="4 5"/>
+      <circle id="dial-track" cx="54" cy="54" r="48" fill="none" stroke="#E04B2A" stroke-width="7"
+        stroke-dasharray="0 302" stroke-linecap="round" transform="rotate(-90 54 54)" opacity="0.85"/>
+      <circle id="dial-thumb" cx="54" cy="6" r="7" fill="#fff" stroke="#E04B2A" stroke-width="2.5"/>
+      <path id="dial-hitarea"
+        d="M54,2 A52,52,0,1,1,53.99,2 Z M54,40 A14,14,0,1,0,54.01,40 Z"
+        fill-rule="evenodd" fill="rgba(0,0,0,0)" pointer-events="all" style="cursor:grab"/>
+    </svg>
+  </div>
+  <div id="layer-meter">
     <div id="housing">
-      <div class="housing-inner"></div>
-      <span class="housing-label">METERAN</span>
+      <div class="h-inner"></div>
+      <span class="h-label">METERAN</span>
     </div>
-    <div id="tape-wrap">
-      <canvas id="ruler-canvas"></canvas>
+    <div id="tape-group">
+      <div id="tape-wrap"><canvas id="ruler-canvas"></canvas></div>
+      <div id="hook">⟷</div>
     </div>
-    <div id="hook">⟷</div>
-    <div id="btn-rotate">↻</div>
   </div>
 </div>
 
 <script>
-const group = document.getElementById('meter-group');
-const housing = document.getElementById('housing');
-const tapeWrap = document.getElementById('tape-wrap');
-const hook = document.getElementById('hook');
-const canvas = document.getElementById('ruler-canvas');
-const ctx = canvas.getContext('2d');
-const btnRotate = document.getElementById('btn-rotate');
+const root = document.getElementById('meter-root');
+const layerDial  = document.getElementById('layer-dial');
+const layerMeter = document.getElementById('layer-meter');
+const dialTrack  = document.getElementById('dial-track');
+const dialThumb  = document.getElementById('dial-thumb');
+const dialHit    = document.getElementById('dial-hitarea');
+const housing    = document.getElementById('housing');
+const tapeGroup  = document.getElementById('tape-group');
+const tapeWrap   = document.getElementById('tape-wrap');
+const hook       = document.getElementById('hook');
+const canvas     = document.getElementById('ruler-canvas');
+const ctx        = canvas.getContext('2d');
 
-const MAX_CM = 300;
-const TAPE_W = 64;
-const PX_PER_CM = 3;
-const HOUSING_H = 64;
-
+const TAPE_W = 64, PX_PER_CM = 20, MAX_CM = 100;
+const R = 48, CIRC = 2 * Math.PI * R;
+let hx = root.offsetWidth / 2 - 32;
+let hy = 60;
+let rotation = 0;
 let tapePx = 0;
-let angle = 0; // degrees
-let posX = 80, posY = 80;
+const DIAL_OFFSET = 22;
 
-let draggingTape = false;
-let draggingGroup = false;
-let startY = 0, startTape = 0;
-let startX = 0;
-let dragStartX = 0, dragStartY = 0;
-let groupStartX = 0, groupStartY = 0;
+function positionAll() {
+  layerMeter.style.left = hx + 'px';
+  layerMeter.style.top  = hy + 'px';
+  tapeGroup.style.transform = `rotate(${rotation}deg)`;
+  housing.style.transform   = `rotate(${rotation}deg)`;
+  layerDial.style.left = (hx - DIAL_OFFSET) + 'px';
+  layerDial.style.top  = (hy - DIAL_OFFSET) + 'px';
+}
 
-let isRolled = true; // starts rolled up
+function updateDial() {
+  const norm = ((rotation % 360) + 360) % 360;
+  const arc  = (norm / 360) * CIRC;
+  dialTrack.setAttribute('stroke-dasharray', arc + ' ' + CIRC);
+  const rad = (norm - 90) * Math.PI / 180;
+  dialThumb.setAttribute('cx', 54 + R * Math.cos(rad));
+  dialThumb.setAttribute('cy', 54 + R * Math.sin(rad));
+}
 
-function drawRuler(heightPx) {
-  const totalCm = Math.ceil(heightPx / PX_PER_CM) + 1;
-  const h = Math.max(totalCm * PX_PER_CM + 10, 10);
-  canvas.width = TAPE_W;
-  canvas.height = h;
-  canvas.style.height = h + 'px';
+positionAll();
+updateDial();
 
-  ctx.fillStyle = '#F5C842';
-  ctx.fillRect(0, 0, TAPE_W, h);
-
-  for (let cm = 0; cm <= totalCm; cm++) {
-    const y = cm * PX_PER_CM;
-    let tickW, lw;
-    if (cm % 10 === 0)     { tickW = 30; lw = 1.5; }
-    else if (cm % 5 === 0) { tickW = 20; lw = 1; }
-    else                    { tickW = 12; lw = 0.8; }
+function drawRuler(h) {
+  const totalTicks = Math.ceil(h / PX_PER_CM) + 1;
+  const ch = Math.max(totalTicks * PX_PER_CM + 10, 10);
+  canvas.width = TAPE_W; canvas.height = ch; canvas.style.height = ch + 'px';
+  ctx.fillStyle = '#F5C842'; ctx.fillRect(0, 0, TAPE_W, ch);
+  for (let tick = 1; tick <= totalTicks; tick++) {
+    const y = tick * PX_PER_CM;
     ctx.strokeStyle = '#8A6010';
-    ctx.lineWidth = lw;
+    ctx.lineWidth = 1.0;
     ctx.beginPath();
     ctx.moveTo(TAPE_W, y);
-    ctx.lineTo(TAPE_W - tickW, y);
+    ctx.lineTo(TAPE_W - 18, y);
     ctx.stroke();
   }
-
-  ctx.fillStyle = '#5A3A08';
-  ctx.font = 'bold 11px Arial, sans-serif';
-  ctx.textAlign = 'right';
-  for (let cm = 10; cm <= totalCm; cm += 10) {
-    ctx.fillText(cm, TAPE_W - 32, cm * PX_PER_CM + 4);
-  }
+  ctx.fillStyle = '#5A3A08'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'right';
+  for (let tick = 1; tick <= totalTicks; tick++)
+    ctx.fillText(tick * 10, TAPE_W - 22, tick * PX_PER_CM + 4);
 }
 
 function updateTape(px) {
   tapePx = Math.max(0, Math.min(px, MAX_CM * PX_PER_CM));
   tapeWrap.style.height = tapePx + 'px';
-  hook.style.top = (HOUSING_H + tapePx) + 'px';
+  hook.style.top = (64 + tapePx) + 'px';
   drawRuler(tapePx);
 }
+updateTape(0);
 
-function applyTransform() {
-  group.style.left = posX + 'px';
-  group.style.top = posY + 'px';
-  group.style.transform = `rotate(${angle}deg)`;
+let mode = null;
+let mox = 0, moy = 0;
+let tsx = 0, tsy = 0, tsp = 0;
+
+function getOffset(e) {
+  const r = root.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+function getOffsetTouch(e) {
+  const r = root.getBoundingClientRect();
+  return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
 }
 
-// Animate roll out
-function animateRollOut() {
-  let target = 60 * PX_PER_CM;
-  let cur = 0;
-  const step = () => {
-    cur = Math.min(cur + 8, target);
-    updateTape(cur);
-    if (cur < target) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
+function dialAngle(ex, ey) {
+  const cx = hx + 32, cy = hy + 32;
+  return ((Math.atan2(ey - cy, ex - cx) * 180 / Math.PI + 90) % 360 + 360) % 360;
 }
 
-// Animate roll in
-function animateRollIn(cb) {
-  let cur = tapePx;
-  const step = () => {
-    cur = Math.max(0, cur - 12);
-    updateTape(cur);
-    if (cur > 0) requestAnimationFrame(step);
-    else if (cb) cb();
-  };
-  requestAnimationFrame(step);
+function tapeDeltaAlongAxis(x, y) {
+  const rad = rotation * Math.PI / 180;
+  const axisX = -Math.sin(rad);
+  const axisY = Math.cos(rad);
+  const dx = x - tsx;
+  const dy = y - tsy;
+  return dx * axisX + dy * axisY;
 }
 
-// Click housing = toggle roll
-housing.addEventListener('click', e => {
-  e.stopPropagation();
-  if (isRolled) {
-    isRolled = false;
-    animateRollOut();
-  } else {
-    isRolled = true;
-    animateRollIn();
-  }
-});
-
-// Rotate button
-btnRotate.addEventListener('click', e => {
-  e.stopPropagation();
-  angle = (angle + 90) % 360;
-  applyTransform();
-});
-
-// Drag group (housing as handle)
 housing.addEventListener('mousedown', e => {
-  if (e.button !== 0) return;
-  draggingGroup = true;
-  dragStartX = e.clientX;
-  dragStartY = e.clientY;
-  groupStartX = posX;
-  groupStartY = posY;
-  e.preventDefault();
-  e.stopPropagation();
+  mode = 'move';
+  const o = getOffset(e);
+  mox = o.x - hx; moy = o.y - hy;
+  e.stopPropagation(); e.preventDefault();
 });
-
 housing.addEventListener('touchstart', e => {
-  draggingGroup = true;
-  dragStartX = e.touches[0].clientX;
-  dragStartY = e.touches[0].clientY;
-  groupStartX = posX;
-  groupStartY = posY;
-  e.stopPropagation();
-}, { passive: true });
+  mode = 'move';
+  const o = getOffsetTouch(e);
+  mox = o.x - hx; moy = o.y - hy;
+  e.stopPropagation(); e.preventDefault();
+}, { passive: false });
 
-// Drag hook = extend tape
 hook.addEventListener('mousedown', e => {
-  draggingTape = true;
-  // Convert client coords to local (account for rotation)
-  const rad = angle * Math.PI / 180;
-  const dx = e.clientX - (posX + 32);
-  const dy = e.clientY - (posY + 32);
-  // project onto local Y axis
-  startY = -dx * Math.sin(rad) + dy * Math.cos(rad);
-  startTape = tapePx;
-  e.preventDefault();
-  e.stopPropagation();
+  mode = 'tape';
+  const o = getOffset(e);
+  tsx = o.x; tsy = o.y; tsp = tapePx;
+  e.stopPropagation(); e.preventDefault();
 });
-
 hook.addEventListener('touchstart', e => {
-  draggingTape = true;
-  const rad = angle * Math.PI / 180;
-  const dx = e.touches[0].clientX - (posX + 32);
-  const dy = e.touches[0].clientY - (posY + 32);
-  startY = -dx * Math.sin(rad) + dy * Math.cos(rad);
-  startTape = tapePx;
-  e.stopPropagation();
-}, { passive: true });
+  mode = 'tape';
+  const o = getOffsetTouch(e);
+  tsx = o.x; tsy = o.y; tsp = tapePx;
+  e.stopPropagation(); e.preventDefault();
+}, { passive: false });
+
+dialHit.addEventListener('mousedown', e => {
+  mode = 'dial'; e.stopPropagation(); e.preventDefault();
+});
+dialHit.addEventListener('touchstart', e => {
+  mode = 'dial'; e.stopPropagation(); e.preventDefault();
+}, { passive: false });
 
 document.addEventListener('mousemove', e => {
-  if (draggingGroup) {
-    posX = groupStartX + (e.clientX - dragStartX);
-    posY = groupStartY + (e.clientY - dragStartY);
-    applyTransform();
-  }
-  if (draggingTape) {
-    const rad = angle * Math.PI / 180;
-    const dx = e.clientX - (posX + 32);
-    const dy = e.clientY - (posY + 32);
-    const localY = -dx * Math.sin(rad) + dy * Math.cos(rad);
-    updateTape(startTape + (localY - startY));
+  if (!mode) return;
+  const o = getOffset(e);
+  if (mode === 'move') {
+    hx = o.x - mox; hy = o.y - moy; positionAll();
+  } else if (mode === 'dial') {
+    rotation = dialAngle(o.x, o.y); positionAll(); updateDial();
+  } else if (mode === 'tape') {
+    updateTape(tsp + tapeDeltaAlongAxis(o.x, o.y));
   }
 });
-
 document.addEventListener('touchmove', e => {
-  if (draggingGroup) {
-    posX = groupStartX + (e.touches[0].clientX - dragStartX);
-    posY = groupStartY + (e.touches[0].clientY - dragStartY);
-    applyTransform();
+  if (!mode) return;
+  const o = getOffsetTouch(e);
+  if (mode === 'move') {
+    hx = o.x - mox; hy = o.y - moy; positionAll();
+  } else if (mode === 'dial') {
+    rotation = dialAngle(o.x, o.y); positionAll(); updateDial();
+  } else if (mode === 'tape') {
+    updateTape(tsp + tapeDeltaAlongAxis(o.x, o.y));
   }
-  if (draggingTape) {
-    const rad = angle * Math.PI / 180;
-    const dx = e.touches[0].clientX - (posX + 32);
-    const dy = e.touches[0].clientY - (posY + 32);
-    const localY = -dx * Math.sin(rad) + dy * Math.cos(rad);
-    updateTape(startTape + (localY - startY));
-  }
-}, { passive: true });
+  e.preventDefault();
+}, { passive: false });
 
-document.addEventListener('mouseup', () => { draggingGroup = false; draggingTape = false; });
-document.addEventListener('touchend', () => { draggingGroup = false; draggingTape = false; });
-
-// Init
-drawRuler(0);
-hook.style.top = HOUSING_H + 'px';
-applyTransform();
+document.addEventListener('mouseup',  () => { mode = null; });
+document.addEventListener('touchend', () => { mode = null; });
 </script>
-</body>
-</html>
