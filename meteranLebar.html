@@ -1,7 +1,8 @@
 
+
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-#meter-root { width: 100%; min-height: 400px; overflow: hidden; font-family: Arial, sans-serif; position: relative; }
+#meter-root { width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; position: relative; }
 #layer-dial { position: absolute; pointer-events: none; }
 #layer-meter { position: absolute; pointer-events: none; }
 #dial-svg { pointer-events: none; display: block; }
@@ -123,7 +124,7 @@ updateTape(0);
 
 let mode = null;
 let mox = 0, moy = 0;
-let tsy = 0, tsp = 0;
+let tsx = 0, tsy = 0, tsp = 0;
 
 function getOffset(e) {
   const r = root.getBoundingClientRect();
@@ -137,6 +138,15 @@ function getOffsetTouch(e) {
 function dialAngle(ex, ey) {
   const cx = hx + 32, cy = hy + 32;
   return ((Math.atan2(ey - cy, ex - cx) * 180 / Math.PI + 90) % 360 + 360) % 360;
+}
+
+function tapeDeltaAlongAxis(x, y) {
+  const rad = rotation * Math.PI / 180;
+  const axisX = -Math.sin(rad);
+  const axisY = Math.cos(rad);
+  const dx = x - tsx;
+  const dy = y - tsy;
+  return dx * axisX + dy * axisY;
 }
 
 housing.addEventListener('mousedown', e => {
@@ -154,12 +164,14 @@ housing.addEventListener('touchstart', e => {
 
 hook.addEventListener('mousedown', e => {
   mode = 'tape';
-  tsy = getOffset(e).y; tsp = tapePx;
+  const o = getOffset(e);
+  tsx = o.x; tsy = o.y; tsp = tapePx;
   e.stopPropagation(); e.preventDefault();
 });
 hook.addEventListener('touchstart', e => {
   mode = 'tape';
-  tsy = getOffsetTouch(e).y; tsp = tapePx;
+  const o = getOffsetTouch(e);
+  tsx = o.x; tsy = o.y; tsp = tapePx;
   e.stopPropagation(); e.preventDefault();
 }, { passive: false });
 
@@ -178,7 +190,7 @@ document.addEventListener('mousemove', e => {
   } else if (mode === 'dial') {
     rotation = dialAngle(o.x, o.y); positionAll(); updateDial();
   } else if (mode === 'tape') {
-    updateTape(tsp + (o.y - tsy));
+    updateTape(tsp + tapeDeltaAlongAxis(o.x, o.y));
   }
 });
 document.addEventListener('touchmove', e => {
@@ -189,7 +201,7 @@ document.addEventListener('touchmove', e => {
   } else if (mode === 'dial') {
     rotation = dialAngle(o.x, o.y); positionAll(); updateDial();
   } else if (mode === 'tape') {
-    updateTape(tsp + (o.y - tsy));
+    updateTape(tsp + tapeDeltaAlongAxis(o.x, o.y));
   }
   e.preventDefault();
 }, { passive: false });
