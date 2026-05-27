@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuis Bangun Datar</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d1117; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+
+/* PAGES */
+.page { display: none; width: 100vw; min-height: 100vh; }
+.page.active { display: flex; flex-direction: column; }
+
+/* ===== SOAL PAGE ===== */
+#page-soal { background: #0d1117; }
+.topbar { background: #1c2333; padding: 6px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #263354; flex-shrink: 0; }
+.topbar-title { font-size: 10px; color: #7c9ccc; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.topbar-hint { font-size: 9px; color: #4a6fa5; }
+.columns { display: flex; flex: 1; }
+.col { flex: 1; display: flex; flex-direction: column; }
+.col-left { border-right: 2px solid #f0c040; }
+.col-header { padding: 5px 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.col-header-yellow { background: #b8860b; }
+.col-header-pink { background: #9b2060; }
+.col-header-title { font-size: 10px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+.col-header-score { font-size: 8px; color: rgba(255,255,255,0.75); }
+.soal-list { flex: 1; padding: 5px 6px; display: flex; flex-direction: column; gap: 4px; }
+.soal { background: #161f2e; border: 0.5px solid #263354; border-radius: 4px; padding: 4px 6px; display: flex; gap: 4px; }
+.soal-left { display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; align-items: center; justify-content: center; width: 70px; }
+.soal-num { font-size: 7px; color: #4a6fa5; font-weight: 600; text-align: center; margin-bottom: 1px; }
+.shape-area { width: 68px; height: 52px; display: flex; align-items: center; justify-content: center; }
+.soal-right { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding-left: 5px; border-left: 0.5px solid #263354; }
+.soal-tipe { font-size: 6.5px; color: #7c9ccc; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.soal-q { font-size: 7px; color: #e8d5a3; margin: 2px 0; }
+.pilihan-row { display: flex; gap: 3px; }
+
+/* Tombol pilihan */
+.pil {
+  flex: 1; background: #0f1b33; border: 1px solid #263354;
+  border-radius: 3px; padding: 3px 2px; font-size: 6.5px;
+  color: #7c9ccc; text-align: center; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  user-select: none;
+}
+.pil:hover { background: #1a2d50; border-color: #4a6fa5; color: #aac4ee; }
+.pil.selected-yellow { background: #b8860b; border-color: #f0c040; color: #fff5cc; }
+.pil.selected-pink { background: #9b2060; border-color: #f472b6; color: #ffe4f0; }
+
+/* Tombol selesai */
+.btn-done {
+  display: block; width: calc(100% - 12px); margin: 4px 6px;
+  padding: 5px; background: #1a2333; border: 1px solid #263354;
+  border-radius: 4px; color: #4a6fa5; font-size: 8px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-done:hover { background: #263354; color: #7c9ccc; }
+.btn-done.ready-yellow { background: #b8860b; border-color: #f0c040; color: #fff5cc; }
+.btn-done.ready-yellow:hover { background: #d4a017; }
+.btn-done.ready-pink { background: #9b2060; border-color: #f472b6; color: #ffe4f0; }
+.btn-done.ready-pink:hover { background: #b02070; }
+.btn-done:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ===== HASIL PAGE ===== */
+#page-hasil { background: #0d1117; }
+
+.banner {
+  padding: 10px 20px; text-align: center; flex-shrink: 0;
+  border-bottom: 1px solid #263354;
+}
+.banner-label { font-size: 9px; color: #7c9ccc; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.banner-winner { font-size: 18px; font-weight: 700; }
+.banner-scores { font-size: 9px; color: #7c9ccc; margin-top: 4px; }
+.winner-yellow { color: #f0c040; }
+.winner-pink { color: #f472b6; }
+.winner-seri { color: #7c9ccc; }
+
+/* Kolom hasil sama struktur soal */
+.hasil-columns { display: flex; flex: 1; }
+.hasil-col { flex: 1; display: flex; flex-direction: column; }
+.hasil-col-left { border-right: 2px solid #f0c040; }
+
+/* Highlight jawaban di hasil */
+.pil.highlight-correct { border: 2px solid #22c55e; color: #bbf7d0; background: #052e16; }
+.pil.highlight-player-correct { background: #1d4ed8; border-color: #60a5fa; color: #bfdbfe; }
+.pil.highlight-player-wrong { background: #7f1d1d; border-color: #f87171; color: #fecaca; }
+/* Gabungan: benar sekaligus jawaban pemain yang benar */
+.pil.highlight-correct.highlight-player-correct {
+  background: #1d4ed8; border: 2px solid #22c55e; color: #bfdbfe;
+}
+
+.btn-ulang {
+  display: block; margin: 8px auto; padding: 6px 24px;
+  background: #1a2333; border: 1px solid #263354; border-radius: 4px;
+  color: #7c9ccc; font-size: 9px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+}
+.btn-ulang:hover { background: #263354; color: #aac4ee; }
+
+/* Status soal sudah dijawab */
+.soal.answered { border-color: #1a3a1a; }
+</style>
+</head>
+<body>
+
+<!-- ===== HALAMAN SOAL ===== -->
+<div id="page-soal" class="page active">
+  <div class="topbar">
+    <div class="topbar-title">Kuis Bangun Datar</div>
+    <div class="topbar-hint" id="hint-text">Kedua pemain harus menjawab semua soal</div>
+  </div>
+  <div class="columns">
+
+    <!-- PEMAIN 1 (KUNING) -->
+    <div class="col col-left">
+      <div class="col-header col-header-yellow">
+        <div class="col-header-title">PEMAIN 1</div>
+        <div class="col-header-score" id="skor1">Skor: 0 / 5</div>
+      </div>
+      <div class="soal-list" id="soal-p1"></div>
+      <button class="btn-done" id="btn-done1" disabled onclick="selesai(1)">SELESAI MENJAWAB</button>
+    </div>
+
+    <!-- PEMAIN 2 (PINK) -->
+    <div class="col">
+      <div class="col-header col-header-pink">
+        <div class="col-header-title">PEMAIN 2</div>
+        <div class="col-header-score" id="skor2">Skor: 0 / 5</div>
+      </div>
+      <div class="soal-list" id="soal-p2"></div>
+      <button class="btn-done" id="btn-done2" disabled onclick="selesai(2)">SELESAI MENJAWAB</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== HALAMAN HASIL ===== -->
+<div id="page-hasil" class="page">
+  <div class="banner">
+    <div class="banner-label">Hasil Kuis</div>
+    <div class="banner-winner" id="banner-winner"></div>
+    <div class="banner-scores" id="banner-scores"></div>
+  </div>
+  <div class="hasil-columns">
+    <div class="hasil-col hasil-col-left">
+      <div class="col-header col-header-yellow">
+        <div class="col-header-title">PEMAIN 1</div>
+        <div class="col-header-score" id="hasil-skor1"></div>
+      </div>
+      <div class="soal-list" id="hasil-p1"></div>
+    </div>
+    <div class="hasil-col">
+      <div class="col-header col-header-pink">
+        <div class="col-header-title">PEMAIN 2</div>
+        <div class="col-header-score" id="hasil-skor2"></div>
+      </div>
+      <div class="soal-list" id="hasil-p2"></div>
+    </div>
+  </div>
+  <button class="btn-ulang" onclick="ulang()">↺ MAIN LAGI</button>
+</div>
+
+<script>
+// ===== DATA SOAL =====
+const soalP1 = [
+  {
+    num: 1, tipe: 'Persegi', q: 'Sisi: 7 cm &nbsp;|&nbsp; Keliling = ?',
+    pilihan: ['a. 21 cm', 'b. 28 cm', 'c. 49 cm'], jawaban: 1,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <rect x="10" y="4" width="32" height="32" fill="none" stroke="#f0c040" stroke-width="1.5"/>
+      <text x="26" y="44" fill="#e8d5a3" font-size="5.5" text-anchor="middle">7 cm</text>
+      <text x="45" y="22" fill="#e8d5a3" font-size="5.5" text-anchor="start">7 cm</text></svg>`
+  },
+  {
+    num: 2, tipe: 'Persegi Panjang', q: 'Panjang: 9 cm, Lebar: 4 cm &nbsp;|&nbsp; Luas = ?',
+    pilihan: ['a. 26 cm²', 'b. 36 cm²', 'c. 40 cm²'], jawaban: 1,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <rect x="4" y="12" width="48" height="24" fill="none" stroke="#f0c040" stroke-width="1.5"/>
+      <text x="28" y="46" fill="#e8d5a3" font-size="5.5" text-anchor="middle">9 cm</text>
+      <text x="55" y="26" fill="#e8d5a3" font-size="5.5" text-anchor="start">4 cm</text></svg>`
+  },
+  {
+    num: 3, tipe: 'Segitiga Sama Sisi', q: 'Sisi: 6 cm &nbsp;|&nbsp; Keliling = ?',
+    pilihan: ['a. 12 cm', 'b. 18 cm', 'c. 24 cm'], jawaban: 1,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <polygon points="34,3 60,44 8,44" fill="none" stroke="#f0c040" stroke-width="1.5"/>
+      <text x="34" y="50" fill="#e8d5a3" font-size="5.5" text-anchor="middle">6 cm</text>
+      <text x="2" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="start">6 cm</text>
+      <text x="55" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="start">6 cm</text></svg>`
+  },
+  {
+    num: 4, tipe: 'Persegi', q: 'Sisi: 5 cm &nbsp;|&nbsp; Luas = ?',
+    pilihan: ['a. 20 cm²', 'b. 25 cm²', 'c. 30 cm²'], jawaban: 1,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <rect x="12" y="4" width="30" height="30" fill="none" stroke="#f0c040" stroke-width="1.5"/>
+      <text x="27" y="44" fill="#e8d5a3" font-size="5.5" text-anchor="middle">5 cm</text>
+      <text x="45" y="21" fill="#e8d5a3" font-size="5.5" text-anchor="start">5 cm</text></svg>`
+  },
+  {
+    num: 5, tipe: 'Segitiga Siku-siku', q: 'Alas: 8 cm, Tinggi: 5 cm &nbsp;|&nbsp; Luas = ?',
+    pilihan: ['a. 20 cm²', 'b. 40 cm²', 'c. 13 cm²'], jawaban: 0,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <polygon points="16,46 16,4 58,46" fill="none" stroke="#f0c040" stroke-width="1.5"/>
+      <rect x="16" y="40" width="5" height="5" fill="none" stroke="#f0c040" stroke-width="1"/>
+      <text x="37" y="50" fill="#e8d5a3" font-size="5.5" text-anchor="middle">8 cm</text>
+      <text x="4" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="middle" transform="rotate(-90,4,28)">5 cm</text></svg>`
+  }
+];
+
+const soalP2 = [
+  {
+    num: 1, tipe: 'Persegi', q: 'Sisi: 8 cm &nbsp;|&nbsp; Keliling = ?',
+    pilihan: ['a. 24 cm', 'b. 32 cm', 'c. 64 cm'], jawaban: 1,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <rect x="8" y="3" width="34" height="34" fill="none" stroke="#f472b6" stroke-width="1.5"/>
+      <text x="25" y="45" fill="#e8d5a3" font-size="5.5" text-anchor="middle">8 cm</text>
+      <text x="45" y="22" fill="#e8d5a3" font-size="5.5" text-anchor="start">8 cm</text></svg>`
+  },
+  {
+    num: 2, tipe: 'Persegi Panjang', q: 'Panjang: 10 cm, Lebar: 3 cm &nbsp;|&nbsp; Luas = ?',
+    pilihan: ['a. 26 cm²', 'b. 30 cm²', 'c. 33 cm²'], jawaban: 1,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <rect x="2" y="15" width="56" height="18" fill="none" stroke="#f472b6" stroke-width="1.5"/>
+      <text x="30" y="46" fill="#e8d5a3" font-size="5.5" text-anchor="middle">10 cm</text>
+      <text x="60" y="26" fill="#e8d5a3" font-size="5.5" text-anchor="start">3 cm</text></svg>`
+  },
+  {
+    num: 3, tipe: 'Segitiga Sama Sisi', q: 'Sisi: 9 cm &nbsp;|&nbsp; Keliling = ?',
+    pilihan: ['a. 18 cm', 'b. 27 cm', 'c. 36 cm'], jawaban: 1,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <polygon points="34,3 60,44 8,44" fill="none" stroke="#f472b6" stroke-width="1.5"/>
+      <text x="34" y="50" fill="#e8d5a3" font-size="5.5" text-anchor="middle">9 cm</text>
+      <text x="2" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="start">9 cm</text>
+      <text x="55" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="start">9 cm</text></svg>`
+  },
+  {
+    num: 4, tipe: 'Persegi', q: 'Sisi: 6 cm &nbsp;|&nbsp; Luas = ?',
+    pilihan: ['a. 24 cm²', 'b. 36 cm²', 'c. 42 cm²'], jawaban: 1,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <rect x="10" y="4" width="32" height="32" fill="none" stroke="#f472b6" stroke-width="1.5"/>
+      <text x="26" y="44" fill="#e8d5a3" font-size="5.5" text-anchor="middle">6 cm</text>
+      <text x="45" y="22" fill="#e8d5a3" font-size="5.5" text-anchor="start">6 cm</text></svg>`
+  },
+  {
+    num: 5, tipe: 'Segitiga Siku-siku', q: 'Alas: 10 cm, Tinggi: 6 cm &nbsp;|&nbsp; Luas = ?',
+    pilihan: ['a. 30 cm²', 'b. 60 cm²', 'c. 16 cm²'], jawaban: 0,
+    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
+      <polygon points="16,46 16,4 60,46" fill="none" stroke="#f472b6" stroke-width="1.5"/>
+      <rect x="16" y="40" width="5" height="5" fill="none" stroke="#f472b6" stroke-width="1"/>
+      <text x="38" y="50" fill="#e8d5a3" font-size="5.5" text-anchor="middle">10 cm</text>
+      <text x="4" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="middle" transform="rotate(-90,4,28)">6 cm</text></svg>`
+  }
+];
+
+// ===== STATE =====
+let jawaban1 = Array(5).fill(null);
+let jawaban2 = Array(5).fill(null);
+let done1 = false, done2 = false;
+
+// ===== RENDER SOAL =====
+function renderSoal(container, soalArr, player) {
+  container.innerHTML = '';
+  soalArr.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'soal';
+    div.id = `soal-p${player}-${i}`;
+    div.innerHTML = `
+      <div class="soal-left">
+        <div class="soal-num">No. ${s.num}</div>
+        <div class="shape-area">${s.svg}</div>
+      </div>
+      <div class="soal-right">
+        <div class="soal-tipe">${s.tipe}</div>
+        <div class="soal-q">${s.q}</div>
+        <div class="pilihan-row" id="pil-p${player}-${i}">
+          ${s.pilihan.map((p, j) =>
+            `<div class="pil" onclick="pilih(${player},${i},${j})" id="pil-p${player}-${i}-${j}">${p}</div>`
+          ).join('')}
+        </div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function pilih(player, soalIdx, pilIdx) {
+  if (player === 1 && done1) return;
+  if (player === 2 && done2) return;
+
+  const jawaban = player === 1 ? jawaban1 : jawaban2;
+  jawaban[soalIdx] = pilIdx;
+
+  // Update visual
+  const row = document.getElementById(`pil-p${player}-${soalIdx}`);
+  const cls = player === 1 ? 'selected-yellow' : 'selected-pink';
+  row.querySelectorAll('.pil').forEach((el, j) => {
+    el.classList.toggle(cls, j === pilIdx);
+  });
+
+  // Update skor display
+  updateSkor(player);
+
+  // Cek tombol selesai
+  const allAnswered = jawaban.every(j => j !== null);
+  const btn = document.getElementById(`btn-done${player}`);
+  btn.disabled = !allAnswered;
+  if (allAnswered) {
+    btn.classList.add(player === 1 ? 'ready-yellow' : 'ready-pink');
+  }
+}
+
+function updateSkor(player) {
+  const soalArr = player === 1 ? soalP1 : soalP2;
+  const jawaban = player === 1 ? jawaban1 : jawaban2;
+  const skor = jawaban.reduce((acc, j, i) => acc + (j === soalArr[i].jawaban ? 1 : 0), 0);
+  document.getElementById(`skor${player}`).textContent = `Skor: ${skor} / 5`;
+}
+
+function selesai(player) {
+  if (player === 1) {
+    done1 = true;
+    document.getElementById('btn-done1').disabled = true;
+    document.getElementById('btn-done1').textContent = '✓ PEMAIN 1 SELESAI';
+    // Kunci pilihan
+    document.querySelectorAll(`[id^="pil-p1-"]`).forEach(el => el.style.pointerEvents = 'none');
+  } else {
+    done2 = true;
+    document.getElementById('btn-done2').disabled = true;
+    document.getElementById('btn-done2').textContent = '✓ PEMAIN 2 SELESAI';
+    document.querySelectorAll(`[id^="pil-p2-"]`).forEach(el => el.style.pointerEvents = 'none');
+  }
+
+  // Update hint
+  if (done1 && done2) {
+    document.getElementById('hint-text').textContent = 'Semua selesai! Memuat hasil...';
+    setTimeout(tampilHasil, 800);
+  } else if (done1) {
+    document.getElementById('hint-text').textContent = 'Pemain 2 belum selesai menjawab';
+  } else {
+    document.getElementById('hint-text').textContent = 'Pemain 1 belum selesai menjawab';
+  }
+}
+
+// ===== HALAMAN HASIL =====
+function hitungSkor(soalArr, jawaban) {
+  return jawaban.reduce((acc, j, i) => acc + (j === soalArr[i].jawaban ? 1 : 0), 0);
+}
+
+function renderHasil(container, soalArr, jawaban, player) {
+  container.innerHTML = '';
+  soalArr.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'soal';
+    div.innerHTML = `
+      <div class="soal-left">
+        <div class="soal-num">No. ${s.num}</div>
+        <div class="shape-area">${s.svg}</div>
+      </div>
+      <div class="soal-right">
+        <div class="soal-tipe">${s.tipe}</div>
+        <div class="soal-q">${s.q}</div>
+        <div class="pilihan-row">
+          ${s.pilihan.map((p, j) => {
+            let cls = 'pil';
+            const isCorrectKey = j === s.jawaban;
+            const isPlayerPick = j === jawaban[i];
+            const isPlayerCorrect = isPlayerPick && isCorrectKey;
+            const isPlayerWrong = isPlayerPick && !isCorrectKey;
+            if (isCorrectKey) cls += ' highlight-correct';
+            if (isPlayerCorrect) cls += ' highlight-player-correct';
+            else if (isPlayerWrong) cls += ' highlight-player-wrong';
+            return `<div class="${cls}">${p}</div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function tampilHasil() {
+  const s1 = hitungSkor(soalP1, jawaban1);
+  const s2 = hitungSkor(soalP2, jawaban2);
+
+  // Banner pemenang
+  const bannerEl = document.getElementById('banner-winner');
+  const scoresEl = document.getElementById('banner-scores');
+  if (s1 > s2) {
+    bannerEl.innerHTML = `🏆 Pemenang: <span class="winner-yellow">PEMAIN 1 (Kuning)</span>`;
+  } else if (s2 > s1) {
+    bannerEl.innerHTML = `🏆 Pemenang: <span class="winner-pink">PEMAIN 2 (Pink)</span>`;
+  } else {
+    bannerEl.innerHTML = `<span class="winner-seri">🤝 Hasil Seri!</span>`;
+  }
+  scoresEl.textContent = `Pemain 1: ${s1}/5 &nbsp;|&nbsp; Pemain 2: ${s2}/5`;
+  document.getElementById('hasil-skor1').textContent = `Skor: ${s1} / 5`;
+  document.getElementById('hasil-skor2').textContent = `Skor: ${s2} / 5`;
+
+  // Render review
+  renderHasil(document.getElementById('hasil-p1'), soalP1, jawaban1, 1);
+  renderHasil(document.getElementById('hasil-p2'), soalP2, jawaban2, 2);
+
+  // Switch halaman
+  document.getElementById('page-soal').classList.remove('active');
+  document.getElementById('page-hasil').classList.add('active');
+}
+
+function ulang() {
+  jawaban1 = Array(5).fill(null);
+  jawaban2 = Array(5).fill(null);
+  done1 = false; done2 = false;
+  document.getElementById('skor1').textContent = 'Skor: 0 / 5';
+  document.getElementById('skor2').textContent = 'Skor: 0 / 5';
+  document.getElementById('hint-text').textContent = 'Kedua pemain harus menjawab semua soal';
+  document.getElementById('btn-done1').disabled = true;
+  document.getElementById('btn-done1').textContent = 'SELESAI MENJAWAB';
+  document.getElementById('btn-done1').className = 'btn-done';
+  document.getElementById('btn-done2').disabled = true;
+  document.getElementById('btn-done2').textContent = 'SELESAI MENJAWAB';
+  document.getElementById('btn-done2').className = 'btn-done';
+  renderSoal(document.getElementById('soal-p1'), soalP1, 1);
+  renderSoal(document.getElementById('soal-p2'), soalP2, 2);
+  document.getElementById('page-hasil').classList.remove('active');
+  document.getElementById('page-soal').classList.add('active');
+}
+
+// ===== INIT =====
+renderSoal(document.getElementById('soal-p1'), soalP1, 1);
+renderSoal(document.getElementById('soal-p2'), soalP2, 2);
+</script>
+</body>
+</html>
