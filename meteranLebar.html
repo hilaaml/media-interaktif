@@ -3,209 +3,239 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meteran Vertikal</title>
+<title>Meteran</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: transparent;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    padding: 16px 8px;
-    font-family: Arial, sans-serif;
-  }
-  .tape-column {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    user-select: none;
-  }
-  .housing {
-    width: 64px; height: 64px; border-radius: 50%;
-    background: #E04B2A; border: 3px solid #A8321A;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; flex-shrink: 0;
-    cursor: grab;
-  }
-  .housing:active { cursor: grabbing; }
-  .housing-inner {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: #C03C22; border: 2px solid #fff;
-  }
-  .housing-label { font-size: 7px; font-weight: 700; color: #fff; margin-top: 2px; letter-spacing: 0.5px; }
-  #tape-wrap {
-    width: 64px; background: #F5C842;
-    border: 2px solid #C8951A; border-top: none;
-    border-radius: 0 0 6px 6px; overflow: hidden;
-    min-height: 4px;
-  }
-  canvas { display: block; width: 64px; }
-  .hook {
-    width: 48px; height: 18px; background: #ccc;
-    border: 2px solid #999; border-radius: 4px;
-    cursor: ns-resize; display: flex; align-items: center;
-    justify-content: center; font-size: 12px; color: #555;
-  }
-  /* Wrapper yang bisa di-drag dan di-rotate */
-  #meter-wrapper {
-    position: fixed;
-    top: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    touch-action: none;
-  }
-  .rotate-btn {
-    width: 64px; height: 24px; background: #555;
-    border-radius: 4px; display: flex; align-items: center;
-    justify-content: center; font-size: 11px; color: #fff;
-    cursor: pointer; margin-bottom: 4px;
-    user-select: none;
-  }
-  .rotate-btn:hover { background: #333; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #e0e0e0; min-height: 100vh; overflow: hidden; font-family: Arial, sans-serif; }
+
+/* Dua layer terpisah, keduanya position:fixed */
+#layer-dial { position: fixed; pointer-events: none; }
+#layer-meter { position: fixed; pointer-events: none; }
+
+/* Dial ring SVG — hanya ring yg clickable, bukan tengahnya */
+#dial-svg { pointer-events: none; display: block; }
+#dial-hitarea { pointer-events: all; cursor: grab; fill: none; }
+#dial-hitarea:active { cursor: grabbing; }
+
+/* Housing (lingkaran merah) */
+#housing {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: #E04B2A; border: 3px solid #A8321A;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; cursor: grab; pointer-events: all;
+  position: absolute; top: 0; left: 0;
+}
+#housing:active { cursor: grabbing; }
+.h-inner { width: 22px; height: 22px; border-radius: 50%; background: #C03C22; border: 2px solid #fff; }
+.h-label { font-size: 7px; font-weight: 700; color: #fff; margin-top: 2px; letter-spacing: 0.5px; }
+
+
+/* Tape & hook — rotasi sama dengan housing */
+#tape-group { position: absolute; top: 0; left: 0; pointer-events: none; transform-origin: 32px 32px; }
+#tape-wrap { width: 64px; background: #F5C842; border: 2px solid #C8951A; border-top: none; border-radius: 0 0 6px 6px; overflow: hidden; position: absolute; top: 64px; left: 0; }
+canvas { display: block; width: 64px; }
+#hook { width: 48px; height: 16px; background: #ccc; border: 2px solid #999; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center; font-size: 11px; color: #555;
+  cursor: ns-resize; pointer-events: all; position: absolute; left: 8px; }
 </style>
 </head>
 <body>
 
-<div id="meter-wrapper">
-  <div class="rotate-btn" id="rotate-btn">↻ Putar</div>
-  <div class="tape-column">
-    <div class="housing" id="housing">
-      <div class="housing-inner"></div>
-      <span class="housing-label">METERAN</span>
-    </div>
+<!-- Layer 1: Dial ring (tidak berputar, tidak ikut pindah) -->
+<div id="layer-dial">
+  <svg id="dial-svg" width="108" height="108" viewBox="0 0 108 108">
+    <!-- Track background -->
+    <circle cx="54" cy="54" r="48" fill="none" stroke="#ccc" stroke-width="7" stroke-dasharray="4 5"/>
+    <!-- Track filled -->
+    <circle id="dial-track" cx="54" cy="54" r="48" fill="none" stroke="#E04B2A" stroke-width="7"
+      stroke-dasharray="0 302" stroke-linecap="round" transform="rotate(-90 54 54)" opacity="0.85"/>
+    <!-- Thumb dot -->
+    <circle id="dial-thumb" cx="54" cy="6" r="7" fill="#fff" stroke="#E04B2A" stroke-width="2.5"/>
+    <!-- Hit area: hanya annulus (ring), bukan lingkaran tengah -->
+    <!-- Trick: gunakan pointer-events pada path berbentuk donat -->
+    <path id="dial-hitarea"
+      d="M54,2 A52,52,0,1,1,53.99,2 Z M54,40 A14,14,0,1,0,54.01,40 Z"
+      fill-rule="evenodd" fill="rgba(0,0,0,0)" pointer-events="all" style="cursor:grab"/>
+  </svg>
+</div>
+
+<!-- Layer 2: Housing + tape (bisa drag + rotate) -->
+<div id="layer-meter">
+  <div id="housing">
+    <div class="h-inner"></div>
+    <span class="h-label">METERAN</span>
+    
+  </div>
+  <div id="tape-group">
     <div id="tape-wrap"><canvas id="ruler-canvas"></canvas></div>
-    <div class="hook" id="hook">⟷</div>
+    <div id="hook">⟷</div>
   </div>
 </div>
 
 <script>
-const tapeWrap = document.getElementById('tape-wrap');
-const hook = document.getElementById('hook');
-const canvas = document.getElementById('ruler-canvas');
-const ctx = canvas.getContext('2d');
-const wrapper = document.getElementById('meter-wrapper');
-const housing = document.getElementById('housing');
-const rotateBtn = document.getElementById('rotate-btn');
+const layerDial  = document.getElementById('layer-dial');
+const layerMeter = document.getElementById('layer-meter');
+const dialSvg    = document.getElementById('dial-svg');
+const dialTrack  = document.getElementById('dial-track');
+const dialThumb  = document.getElementById('dial-thumb');
+const dialHit    = document.getElementById('dial-hitarea');
+const housing    = document.getElementById('housing');
+const tapeGroup  = document.getElementById('tape-group');
+const tapeWrap   = document.getElementById('tape-wrap');
+const hook       = document.getElementById('hook');
+const canvas     = document.getElementById('ruler-canvas');
+const ctx        = canvas.getContext('2d');
 
-const MAX_CM = 100;
-const TAPE_W = 64;
-const PX_PER_CM = 20;
 
+const TAPE_W = 64, PX_PER_CM = 20, MAX_CM = 100;
+const R = 48, CIRC = 2 * Math.PI * R;
+// Pusat housing (kiri-atas housing)
+let hx = window.innerWidth / 2 - 32;
+let hy = 80;
+let rotation = 0;
 let tapePx = 0;
 
-// ── DRAW RULER ──────────────────────────────────────────────
-function drawRuler(heightPx) {
-  const totalCm = Math.ceil(heightPx / PX_PER_CM) + 1;
-  const h = Math.max(totalCm * PX_PER_CM + 10, 10);
-  canvas.width = TAPE_W;
-  canvas.height = h;
-  canvas.style.height = h + 'px';
+// Dial ring offset dari housing: ring lebih besar, diposisikan agar center = center housing
+const DIAL_OFFSET = 22; // (108/2 - 64/2) = 22
 
-  ctx.fillStyle = '#F5C842';
-  ctx.fillRect(0, 0, TAPE_W, h);
-
-  for (let mm = 0; mm <= totalCm * 10; mm++) {
-    const y = mm * (PX_PER_CM / 10);
-    let tickW, lw;
-    if (mm % 100 === 0)     { tickW = 32; lw = 1.5; }
-    else if (mm % 50 === 0) { tickW = 24; lw = 1.2; }
-    else if (mm % 10 === 0) { tickW = 18; lw = 1.0; }
-    else if (mm % 5 === 0)  { tickW = 12; lw = 0.7; }
-    else                    { tickW = 7;  lw = 0.5; }
-    ctx.strokeStyle = '#8A6010';
-    ctx.lineWidth = lw;
-    ctx.beginPath();
-    ctx.moveTo(TAPE_W, y);
-    ctx.lineTo(TAPE_W - tickW, y);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = '#5A3A08';
-  ctx.font = 'bold 11px Arial, sans-serif';
-  ctx.textAlign = 'right';
-  for (let cm = 5; cm <= totalCm; cm += 5) {
-    ctx.fillText(cm, TAPE_W - 34, cm * PX_PER_CM + 4);
-  }
+function positionAll() {
+  // Housing
+  layerMeter.style.left = hx + 'px';
+  layerMeter.style.top  = hy + 'px';
+  // Tape group
+  tapeGroup.style.transform = `rotate(${rotation}deg)`;
+  housing.style.transform   = `rotate(${rotation}deg)`;
+  // Dial ring: centered sama dengan housing
+  layerDial.style.left = (hx - DIAL_OFFSET) + 'px';
+  layerDial.style.top  = (hy - DIAL_OFFSET) + 'px';
 }
 
+function updateDial() {
+  const norm = ((rotation % 360) + 360) % 360;
+  const arc  = (norm / 360) * CIRC;
+  dialTrack.setAttribute('stroke-dasharray', arc + ' ' + CIRC);
+  const rad = (norm - 90) * Math.PI / 180;
+  dialThumb.setAttribute('cx', 54 + R * Math.cos(rad));
+  dialThumb.setAttribute('cy', 54 + R * Math.sin(rad));
+  
+}
+
+positionAll();
+updateDial();
+
+// ── RULER DRAW ──
+function drawRuler(h) {
+  const totalCm = Math.ceil(h / PX_PER_CM) + 1;
+  const ch = Math.max(totalCm * PX_PER_CM + 10, 10);
+  canvas.width = TAPE_W; canvas.height = ch; canvas.style.height = ch + 'px';
+  ctx.fillStyle = '#F5C842'; ctx.fillRect(0, 0, TAPE_W, ch);
+  for (let mm = 0; mm <= totalCm * 10; mm++) {
+    const y = mm * (PX_PER_CM / 10);
+    let tw, lw;
+    if      (mm % 100 === 0) { tw = 32; lw = 1.5; }
+    else if (mm % 50  === 0) { tw = 24; lw = 1.2; }
+    else if (mm % 10  === 0) { tw = 18; lw = 1.0; }
+    else if (mm % 5   === 0) { tw = 12; lw = 0.7; }
+    else                     { tw = 7;  lw = 0.5; }
+    ctx.strokeStyle = '#8A6010'; ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(TAPE_W, y); ctx.lineTo(TAPE_W - tw, y); ctx.stroke();
+  }
+  ctx.fillStyle = '#5A3A08'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'right';
+  for (let cm = 5; cm <= totalCm; cm += 5)
+    ctx.fillText(cm, TAPE_W - 34, cm * PX_PER_CM + 4);
+}
 function updateTape(px) {
   tapePx = Math.max(0, Math.min(px, MAX_CM * PX_PER_CM));
   tapeWrap.style.height = tapePx + 'px';
+  hook.style.top = (64 + tapePx) + 'px';
   drawRuler(tapePx);
 }
+updateTape(0);
 
-drawRuler(0);
+// ── STATE ──
+let mode = null; // 'move' | 'dial' | 'tape'
+let mox = 0, moy = 0;   // move offset
+let tsy = 0, tsp = 0;   // tape start
 
-// ── DRAG TAPE (hook) ─────────────────────────────────────────
-let tapeDragging = false, tapeStartY = 0, tapeStartPx = 0;
-
-hook.addEventListener('mousedown', e => {
-  tapeDragging = true; tapeStartY = e.clientY; tapeStartPx = tapePx;
-  document.body.style.cursor = 'ns-resize'; e.preventDefault(); e.stopPropagation();
-});
-hook.addEventListener('touchstart', e => {
-  tapeDragging = true; tapeStartY = e.touches[0].clientY; tapeStartPx = tapePx;
-  e.preventDefault(); e.stopPropagation();
-}, { passive: false });
-
-document.addEventListener('mousemove', e => {
-  if (tapeDragging) updateTape(tapeStartPx + (e.clientY - tapeStartY));
-});
-document.addEventListener('touchmove', e => {
-  if (tapeDragging) { updateTape(tapeStartPx + (e.touches[0].clientY - tapeStartY)); e.preventDefault(); }
-}, { passive: false });
-document.addEventListener('mouseup', () => { tapeDragging = false; document.body.style.cursor = ''; });
-document.addEventListener('touchend', () => { tapeDragging = false; });
-
-// ── DRAG WRAPPER (housing) ───────────────────────────────────
-let moveDragging = false, moveStartX = 0, moveStartY = 0;
-let wrapX = window.innerWidth / 2 - 32, wrapY = 50;
-let rotation = 0;
-
-function applyTransform() {
-  wrapper.style.left = wrapX + 'px';
-  wrapper.style.top  = wrapY + 'px';
-  wrapper.style.transform = `rotate(${rotation}deg)`;
+function dialAngle(ex, ey) {
+  // Center dial = center housing
+  const cx = hx + 32, cy = hy + 32;
+  return ((Math.atan2(ey - cy, ex - cx) * 180 / Math.PI + 90) % 360 + 360) % 360;
 }
-applyTransform();
 
+// Housing → move
 housing.addEventListener('mousedown', e => {
-  moveDragging = true;
-  moveStartX = e.clientX - wrapX;
-  moveStartY = e.clientY - wrapY;
+  mode = 'move';
+  mox = e.clientX - hx;
+  moy = e.clientY - hy;
+  e.stopPropagation();
   e.preventDefault();
 });
 housing.addEventListener('touchstart', e => {
-  moveDragging = true;
-  moveStartX = e.touches[0].clientX - wrapX;
-  moveStartY = e.touches[0].clientY - wrapY;
+  mode = 'move';
+  mox = e.touches[0].clientX - hx;
+  moy = e.touches[0].clientY - hy;
+  e.stopPropagation();
+  e.preventDefault();
+}, { passive: false });
+
+// Hook → tape
+hook.addEventListener('mousedown', e => {
+  mode = 'tape';
+  tsy = e.clientY; tsp = tapePx;
+  e.stopPropagation();
+  e.preventDefault();
+});
+hook.addEventListener('touchstart', e => {
+  mode = 'tape';
+  tsy = e.touches[0].clientY; tsp = tapePx;
+  e.stopPropagation();
+  e.preventDefault();
+}, { passive: false });
+
+// Dial hit area → rotate
+dialHit.addEventListener('mousedown', e => {
+  mode = 'dial';
+  e.stopPropagation();
+  e.preventDefault();
+});
+dialHit.addEventListener('touchstart', e => {
+  mode = 'dial';
+  e.stopPropagation();
   e.preventDefault();
 }, { passive: false });
 
 document.addEventListener('mousemove', e => {
-  if (moveDragging) {
-    wrapX = e.clientX - moveStartX;
-    wrapY = e.clientY - moveStartY;
-    applyTransform();
+  if (mode === 'move') {
+    hx = e.clientX - mox;
+    hy = e.clientY - moy;
+    positionAll();
+  } else if (mode === 'dial') {
+    rotation = dialAngle(e.clientX, e.clientY);
+    positionAll();
+    updateDial();
+  } else if (mode === 'tape') {
+    updateTape(tsp + (e.clientY - tsy));
   }
 });
 document.addEventListener('touchmove', e => {
-  if (moveDragging) {
-    wrapX = e.touches[0].clientX - moveStartX;
-    wrapY = e.touches[0].clientY - moveStartY;
-    applyTransform();
-    e.preventDefault();
+  const t = e.touches[0];
+  if (mode === 'move') {
+    hx = t.clientX - mox;
+    hy = t.clientY - moy;
+    positionAll();
+  } else if (mode === 'dial') {
+    rotation = dialAngle(t.clientX, t.clientY);
+    positionAll();
+    updateDial();
+  } else if (mode === 'tape') {
+    updateTape(tsp + (t.clientY - tsy));
   }
+  e.preventDefault();
 }, { passive: false });
-document.addEventListener('mouseup', () => { moveDragging = false; });
-document.addEventListener('touchend', () => { moveDragging = false; });
 
-// ── ROTATE BUTTON ────────────────────────────────────────────
-rotateBtn.addEventListener('click', () => {
-  rotation = (rotation + 90) % 360;
-  applyTransform();
-});
+document.addEventListener('mouseup',  () => { mode = null; });
+document.addEventListener('touchend', () => { mode = null; });
 </script>
 </body>
 </html>
