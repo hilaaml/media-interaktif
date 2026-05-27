@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meteran</title>
+
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #e0e0e0; min-height: 100vh; overflow: hidden; font-family: Arial, sans-serif; }
-
-/* Dua layer terpisah, keduanya position:fixed */
-#layer-dial { position: fixed; pointer-events: none; }
-#layer-meter { position: fixed; pointer-events: none; }
-
-/* Dial ring SVG — hanya ring yg clickable, bukan tengahnya */
+#meter-root { width: 100%; min-height: 400px; overflow: hidden; font-family: Arial, sans-serif; position: relative; }
+#layer-dial { position: absolute; pointer-events: none; }
+#layer-meter { position: absolute; pointer-events: none; }
 #dial-svg { pointer-events: none; display: block; }
 #dial-hitarea { pointer-events: all; cursor: grab; fill: none; }
 #dial-hitarea:active { cursor: grabbing; }
-
-/* Housing (lingkaran merah) */
 #housing {
   width: 64px; height: 64px; border-radius: 50%;
   background: #E04B2A; border: 3px solid #A8321A;
@@ -28,9 +17,6 @@ body { background: #e0e0e0; min-height: 100vh; overflow: hidden; font-family: Ar
 #housing:active { cursor: grabbing; }
 .h-inner { width: 22px; height: 22px; border-radius: 50%; background: #C03C22; border: 2px solid #fff; }
 .h-label { font-size: 7px; font-weight: 700; color: #fff; margin-top: 2px; letter-spacing: 0.5px; }
-
-
-/* Tape & hook — rotasi sama dengan housing */
 #tape-group { position: absolute; top: 0; left: 0; pointer-events: none; transform-origin: 32px 32px; }
 #tape-wrap { width: 64px; background: #F5C842; border: 2px solid #C8951A; border-top: none; border-radius: 0 0 6px 6px; overflow: hidden; position: absolute; top: 64px; left: 0; }
 canvas { display: block; width: 64px; }
@@ -38,44 +24,35 @@ canvas { display: block; width: 64px; }
   display: flex; align-items: center; justify-content: center; font-size: 11px; color: #555;
   cursor: ns-resize; pointer-events: all; position: absolute; left: 8px; }
 </style>
-</head>
-<body>
 
-<!-- Layer 1: Dial ring (tidak berputar, tidak ikut pindah) -->
-<div id="layer-dial">
-  <svg id="dial-svg" width="108" height="108" viewBox="0 0 108 108">
-    <!-- Track background -->
-    <circle cx="54" cy="54" r="48" fill="none" stroke="#ccc" stroke-width="7" stroke-dasharray="4 5"/>
-    <!-- Track filled -->
-    <circle id="dial-track" cx="54" cy="54" r="48" fill="none" stroke="#E04B2A" stroke-width="7"
-      stroke-dasharray="0 302" stroke-linecap="round" transform="rotate(-90 54 54)" opacity="0.85"/>
-    <!-- Thumb dot -->
-    <circle id="dial-thumb" cx="54" cy="6" r="7" fill="#fff" stroke="#E04B2A" stroke-width="2.5"/>
-    <!-- Hit area: hanya annulus (ring), bukan lingkaran tengah -->
-    <!-- Trick: gunakan pointer-events pada path berbentuk donat -->
-    <path id="dial-hitarea"
-      d="M54,2 A52,52,0,1,1,53.99,2 Z M54,40 A14,14,0,1,0,54.01,40 Z"
-      fill-rule="evenodd" fill="rgba(0,0,0,0)" pointer-events="all" style="cursor:grab"/>
-  </svg>
-</div>
-
-<!-- Layer 2: Housing + tape (bisa drag + rotate) -->
-<div id="layer-meter">
-  <div id="housing">
-    <div class="h-inner"></div>
-    <span class="h-label">METERAN</span>
-    
+<div id="meter-root">
+  <div id="layer-dial">
+    <svg id="dial-svg" width="108" height="108" viewBox="0 0 108 108">
+      <circle cx="54" cy="54" r="48" fill="none" stroke="#ccc" stroke-width="7" stroke-dasharray="4 5"/>
+      <circle id="dial-track" cx="54" cy="54" r="48" fill="none" stroke="#E04B2A" stroke-width="7"
+        stroke-dasharray="0 302" stroke-linecap="round" transform="rotate(-90 54 54)" opacity="0.85"/>
+      <circle id="dial-thumb" cx="54" cy="6" r="7" fill="#fff" stroke="#E04B2A" stroke-width="2.5"/>
+      <path id="dial-hitarea"
+        d="M54,2 A52,52,0,1,1,53.99,2 Z M54,40 A14,14,0,1,0,54.01,40 Z"
+        fill-rule="evenodd" fill="rgba(0,0,0,0)" pointer-events="all" style="cursor:grab"/>
+    </svg>
   </div>
-  <div id="tape-group">
-    <div id="tape-wrap"><canvas id="ruler-canvas"></canvas></div>
-    <div id="hook">⟷</div>
+  <div id="layer-meter">
+    <div id="housing">
+      <div class="h-inner"></div>
+      <span class="h-label">METERAN</span>
+    </div>
+    <div id="tape-group">
+      <div id="tape-wrap"><canvas id="ruler-canvas"></canvas></div>
+      <div id="hook">⟷</div>
+    </div>
   </div>
 </div>
 
 <script>
+const root = document.getElementById('meter-root');
 const layerDial  = document.getElementById('layer-dial');
 const layerMeter = document.getElementById('layer-meter');
-const dialSvg    = document.getElementById('dial-svg');
 const dialTrack  = document.getElementById('dial-track');
 const dialThumb  = document.getElementById('dial-thumb');
 const dialHit    = document.getElementById('dial-hitarea');
@@ -86,26 +63,19 @@ const hook       = document.getElementById('hook');
 const canvas     = document.getElementById('ruler-canvas');
 const ctx        = canvas.getContext('2d');
 
-
 const TAPE_W = 64, PX_PER_CM = 20, MAX_CM = 100;
 const R = 48, CIRC = 2 * Math.PI * R;
-// Pusat housing (kiri-atas housing)
-let hx = window.innerWidth / 2 - 32;
-let hy = 80;
+let hx = root.offsetWidth / 2 - 32;
+let hy = 60;
 let rotation = 0;
 let tapePx = 0;
-
-// Dial ring offset dari housing: ring lebih besar, diposisikan agar center = center housing
-const DIAL_OFFSET = 22; // (108/2 - 64/2) = 22
+const DIAL_OFFSET = 22;
 
 function positionAll() {
-  // Housing
   layerMeter.style.left = hx + 'px';
   layerMeter.style.top  = hy + 'px';
-  // Tape group
   tapeGroup.style.transform = `rotate(${rotation}deg)`;
   housing.style.transform   = `rotate(${rotation}deg)`;
-  // Dial ring: centered sama dengan housing
   layerDial.style.left = (hx - DIAL_OFFSET) + 'px';
   layerDial.style.top  = (hy - DIAL_OFFSET) + 'px';
 }
@@ -117,13 +87,11 @@ function updateDial() {
   const rad = (norm - 90) * Math.PI / 180;
   dialThumb.setAttribute('cx', 54 + R * Math.cos(rad));
   dialThumb.setAttribute('cy', 54 + R * Math.sin(rad));
-  
 }
 
 positionAll();
 updateDial();
 
-// ── RULER DRAW ──
 function drawRuler(h) {
   const totalCm = Math.ceil(h / PX_PER_CM) + 1;
   const ch = Math.max(totalCm * PX_PER_CM + 10, 10);
@@ -144,6 +112,7 @@ function drawRuler(h) {
   for (let cm = 5; cm <= totalCm; cm += 5)
     ctx.fillText(cm, TAPE_W - 34, cm * PX_PER_CM + 4);
 }
+
 function updateTape(px) {
   tapePx = Math.max(0, Math.min(px, MAX_CM * PX_PER_CM));
   tapeWrap.style.height = tapePx + 'px';
@@ -152,84 +121,75 @@ function updateTape(px) {
 }
 updateTape(0);
 
-// ── STATE ──
-let mode = null; // 'move' | 'dial' | 'tape'
-let mox = 0, moy = 0;   // move offset
-let tsy = 0, tsp = 0;   // tape start
+let mode = null;
+let mox = 0, moy = 0;
+let tsy = 0, tsp = 0;
+
+function getOffset(e) {
+  const r = root.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+function getOffsetTouch(e) {
+  const r = root.getBoundingClientRect();
+  return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+}
 
 function dialAngle(ex, ey) {
-  // Center dial = center housing
   const cx = hx + 32, cy = hy + 32;
   return ((Math.atan2(ey - cy, ex - cx) * 180 / Math.PI + 90) % 360 + 360) % 360;
 }
 
-// Housing → move
 housing.addEventListener('mousedown', e => {
   mode = 'move';
-  mox = e.clientX - hx;
-  moy = e.clientY - hy;
-  e.stopPropagation();
-  e.preventDefault();
+  const o = getOffset(e);
+  mox = o.x - hx; moy = o.y - hy;
+  e.stopPropagation(); e.preventDefault();
 });
 housing.addEventListener('touchstart', e => {
   mode = 'move';
-  mox = e.touches[0].clientX - hx;
-  moy = e.touches[0].clientY - hy;
-  e.stopPropagation();
-  e.preventDefault();
+  const o = getOffsetTouch(e);
+  mox = o.x - hx; moy = o.y - hy;
+  e.stopPropagation(); e.preventDefault();
 }, { passive: false });
 
-// Hook → tape
 hook.addEventListener('mousedown', e => {
   mode = 'tape';
-  tsy = e.clientY; tsp = tapePx;
-  e.stopPropagation();
-  e.preventDefault();
+  tsy = getOffset(e).y; tsp = tapePx;
+  e.stopPropagation(); e.preventDefault();
 });
 hook.addEventListener('touchstart', e => {
   mode = 'tape';
-  tsy = e.touches[0].clientY; tsp = tapePx;
-  e.stopPropagation();
-  e.preventDefault();
+  tsy = getOffsetTouch(e).y; tsp = tapePx;
+  e.stopPropagation(); e.preventDefault();
 }, { passive: false });
 
-// Dial hit area → rotate
 dialHit.addEventListener('mousedown', e => {
-  mode = 'dial';
-  e.stopPropagation();
-  e.preventDefault();
+  mode = 'dial'; e.stopPropagation(); e.preventDefault();
 });
 dialHit.addEventListener('touchstart', e => {
-  mode = 'dial';
-  e.stopPropagation();
-  e.preventDefault();
+  mode = 'dial'; e.stopPropagation(); e.preventDefault();
 }, { passive: false });
 
 document.addEventListener('mousemove', e => {
+  if (!mode) return;
+  const o = getOffset(e);
   if (mode === 'move') {
-    hx = e.clientX - mox;
-    hy = e.clientY - moy;
-    positionAll();
+    hx = o.x - mox; hy = o.y - moy; positionAll();
   } else if (mode === 'dial') {
-    rotation = dialAngle(e.clientX, e.clientY);
-    positionAll();
-    updateDial();
+    rotation = dialAngle(o.x, o.y); positionAll(); updateDial();
   } else if (mode === 'tape') {
-    updateTape(tsp + (e.clientY - tsy));
+    updateTape(tsp + (o.y - tsy));
   }
 });
 document.addEventListener('touchmove', e => {
-  const t = e.touches[0];
+  if (!mode) return;
+  const o = getOffsetTouch(e);
   if (mode === 'move') {
-    hx = t.clientX - mox;
-    hy = t.clientY - moy;
-    positionAll();
+    hx = o.x - mox; hy = o.y - moy; positionAll();
   } else if (mode === 'dial') {
-    rotation = dialAngle(t.clientX, t.clientY);
-    positionAll();
-    updateDial();
+    rotation = dialAngle(o.x, o.y); positionAll(); updateDial();
   } else if (mode === 'tape') {
-    updateTape(tsp + (t.clientY - tsy));
+    updateTape(tsp + (o.y - tsy));
   }
   e.preventDefault();
 }, { passive: false });
@@ -237,5 +197,3 @@ document.addEventListener('touchmove', e => {
 document.addEventListener('mouseup',  () => { mode = null; });
 document.addEventListener('touchend', () => { mode = null; });
 </script>
-</body>
-</html>
