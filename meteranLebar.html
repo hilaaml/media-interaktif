@@ -1,5 +1,3 @@
-
-
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 #meter-root { width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; position: relative; }
@@ -110,7 +108,7 @@ function drawRuler(h) {
     ctx.beginPath(); ctx.moveTo(TAPE_W, y); ctx.lineTo(TAPE_W - tw, y); ctx.stroke();
   }
   ctx.fillStyle = '#5A3A08'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'right';
-  for (let cm = 5; cm <= totalCm; cm += 5)
+  for (let cm = 1; cm <= totalCm; cm += 1)
     ctx.fillText(cm, TAPE_W - 34, cm * PX_PER_CM + 4);
 }
 
