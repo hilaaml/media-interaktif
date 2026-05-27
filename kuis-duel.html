@@ -5,156 +5,145 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kuis Bangun Datar</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0d1117; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-
-/* PAGES */
-.page { display: none; width: 100vw; min-height: 100vh; }
-.page.active { display: flex; flex-direction: column; }
-
-/* ===== SOAL PAGE ===== */
-#page-soal { background: #0d1117; }
-.topbar { background: #1c2333; padding: 6px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #263354; flex-shrink: 0; }
-.topbar-title { font-size: 10px; color: #7c9ccc; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
-.topbar-hint { font-size: 9px; color: #4a6fa5; }
-.columns { display: flex; flex: 1; }
-.col { flex: 1; display: flex; flex-direction: column; }
-.col-left { border-right: 2px solid #f0c040; }
-.col-header { padding: 5px 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-.col-header-yellow { background: #b8860b; }
-.col-header-pink { background: #9b2060; }
-.col-header-title { font-size: 10px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
-.col-header-score { font-size: 8px; color: rgba(255,255,255,0.75); }
-.soal-list { flex: 1; padding: 5px 6px; display: flex; flex-direction: column; gap: 4px; }
-.soal { background: #161f2e; border: 0.5px solid #263354; border-radius: 4px; padding: 4px 6px; display: flex; gap: 4px; }
-.soal-left { display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; align-items: center; justify-content: center; width: 70px; }
-.soal-num { font-size: 7px; color: #4a6fa5; font-weight: 600; text-align: center; margin-bottom: 1px; }
-.shape-area { width: 68px; height: 52px; display: flex; align-items: center; justify-content: center; }
-.soal-right { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding-left: 5px; border-left: 0.5px solid #263354; }
-.soal-tipe { font-size: 6.5px; color: #7c9ccc; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-.soal-q { font-size: 7px; color: #e8d5a3; margin: 2px 0; }
-.pilihan-row { display: flex; gap: 3px; }
-
-/* Tombol pilihan */
-.pil {
-  flex: 1; background: #0f1b33; border: 1px solid #263354;
-  border-radius: 3px; padding: 3px 2px; font-size: 6.5px;
-  color: #7c9ccc; text-align: center; cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-  user-select: none;
-}
-.pil:hover { background: #1a2d50; border-color: #4a6fa5; color: #aac4ee; }
-.pil.selected-yellow { background: #b8860b; border-color: #f0c040; color: #fff5cc; }
-.pil.selected-pink { background: #9b2060; border-color: #f472b6; color: #ffe4f0; }
-
-/* Tombol selesai */
-.btn-done {
-  display: block; width: calc(100% - 12px); margin: 4px 6px;
-  padding: 5px; background: #1a2333; border: 1px solid #263354;
-  border-radius: 4px; color: #4a6fa5; font-size: 8px; font-weight: 700;
-  letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-done:hover { background: #263354; color: #7c9ccc; }
-.btn-done.ready-yellow { background: #b8860b; border-color: #f0c040; color: #fff5cc; }
-.btn-done.ready-yellow:hover { background: #d4a017; }
-.btn-done.ready-pink { background: #9b2060; border-color: #f472b6; color: #ffe4f0; }
-.btn-done.ready-pink:hover { background: #b02070; }
-.btn-done:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* ===== HASIL PAGE ===== */
-#page-hasil { background: #0d1117; }
-
-.banner {
-  padding: 10px 20px; text-align: center; flex-shrink: 0;
-  border-bottom: 1px solid #263354;
-}
-.banner-label { font-size: 9px; color: #7c9ccc; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
-.banner-winner { font-size: 18px; font-weight: 700; }
-.banner-scores { font-size: 9px; color: #7c9ccc; margin-top: 4px; }
-.winner-yellow { color: #f0c040; }
-.winner-pink { color: #f472b6; }
-.winner-seri { color: #7c9ccc; }
-
-/* Kolom hasil sama struktur soal */
-.hasil-columns { display: flex; flex: 1; }
-.hasil-col { flex: 1; display: flex; flex-direction: column; }
-.hasil-col-left { border-right: 2px solid #f0c040; }
-
-/* Highlight jawaban di hasil */
-.pil.highlight-correct { border: 2px solid #22c55e; color: #bbf7d0; background: #052e16; }
-.pil.highlight-player-correct { background: #1d4ed8; border-color: #60a5fa; color: #bfdbfe; }
-.pil.highlight-player-wrong { background: #7f1d1d; border-color: #f87171; color: #fecaca; }
-/* Gabungan: benar sekaligus jawaban pemain yang benar */
-.pil.highlight-correct.highlight-player-correct {
-  background: #1d4ed8; border: 2px solid #22c55e; color: #bfdbfe;
-}
-
-.btn-ulang {
-  display: block; margin: 8px auto; padding: 6px 24px;
-  background: #1a2333; border: 1px solid #263354; border-radius: 4px;
-  color: #7c9ccc; font-size: 9px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; cursor: pointer; transition: all 0.2s;
-}
-.btn-ulang:hover { background: #263354; color: #aac4ee; }
-
-/* Status soal sudah dijawab */
-.soal.answered { border-color: #1a3a1a; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.page{display:none;width:100vw;min-height:100vh;flex-direction:column}
+.page.active{display:flex}
+#page-mulai{align-items:center;justify-content:flex-start;padding:40px 24px}
+.mulai-inner{width:100%;max-width:700px;margin:0 auto}
+.mulai-title{font-size:32px;font-weight:700;color:#f0c040;text-align:center;margin-bottom:6px;letter-spacing:1px}
+.mulai-sub{font-size:14px;color:#7c9ccc;text-align:center;margin-bottom:32px;letter-spacing:2px;text-transform:uppercase}
+.cara-card{background:#161f2e;border:1px solid #263354;border-radius:10px;padding:24px 28px;margin-bottom:28px}
+.cara-title{font-size:13px;font-weight:700;color:#f0c040;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px}
+.cara-list{display:flex;flex-direction:column;gap:12px}
+.cara-item{display:flex;gap:14px;align-items:flex-start}
+.cara-num{width:26px;height:26px;border-radius:50%;background:#b8860b;color:#fff5cc;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.cara-text{font-size:13px;color:#c8d8ee;line-height:1.6}
+.cara-text b{color:#e8d5a3}
+.highlight-seri{color:#f472b6;font-weight:700}
+.btn-mulai{display:block;width:100%;padding:16px;background:#b8860b;border:2px solid #f0c040;border-radius:8px;color:#fff5cc;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;margin-top:4px}
+.btn-mulai:hover{background:#d4a017;transform:translateY(-1px)}
+.topbar{background:#1c2333;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #263354;flex-shrink:0}
+.topbar-title{font-size:13px;color:#7c9ccc;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.timer-box{display:flex;align-items:center;gap:8px;background:#0d1117;border:1px solid #263354;border-radius:6px;padding:6px 14px}
+.timer-label{font-size:11px;color:#4a6fa5;letter-spacing:1px;text-transform:uppercase}
+.timer-val{font-size:18px;font-weight:700;color:#f0c040;font-variant-numeric:tabular-nums;min-width:60px;text-align:center}
+.topbar-hint{font-size:11px;color:#4a6fa5}
+.columns{display:flex;flex:1}
+.col{flex:1;display:flex;flex-direction:column}
+.col-left{border-right:2px solid #f0c040}
+.col-header{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.col-header-yellow{background:#b8860b}
+.col-header-pink{background:#9b2060}
+.col-header-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:0.5px}
+.soal-list{flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:8px}
+.soal{background:#161f2e;border:0.5px solid #263354;border-radius:6px;padding:8px 10px;display:flex;gap:8px}
+.soal-left{display:flex;flex-direction:column;gap:2px;flex-shrink:0;align-items:center;justify-content:center;width:100px}
+.soal-num{font-size:10px;color:#4a6fa5;font-weight:600;text-align:center;margin-bottom:2px}
+.shape-area{width:96px;height:72px;display:flex;align-items:center;justify-content:center}
+.soal-right{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding-left:8px;border-left:0.5px solid #263354}
+.soal-tipe{font-size:9px;color:#7c9ccc;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+.soal-q{font-size:11px;color:#e8d5a3;margin:4px 0}
+.pilihan-row{display:flex;gap:5px}
+.pil{flex:1;background:#0f1b33;border:1px solid #263354;border-radius:4px;padding:6px 4px;font-size:10px;color:#7c9ccc;text-align:center;cursor:pointer;transition:background 0.15s,border-color 0.15s,color 0.15s;user-select:none}
+.pil:hover{background:#1a2d50;border-color:#4a6fa5;color:#aac4ee}
+.pil.selected-yellow{background:#b8860b;border-color:#f0c040;color:#fff5cc}
+.pil.selected-pink{background:#9b2060;border-color:#f472b6;color:#ffe4f0}
+.btn-done{display:block;width:calc(100% - 20px);margin:8px 10px;padding:10px;background:#1a2333;border:1px solid #263354;border-radius:6px;color:#4a6fa5;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-done:hover{background:#263354;color:#7c9ccc}
+.btn-done.ready-yellow{background:#b8860b;border-color:#f0c040;color:#fff5cc}
+.btn-done.ready-yellow:hover{background:#d4a017}
+.btn-done.ready-pink{background:#9b2060;border-color:#f472b6;color:#ffe4f0}
+.btn-done.ready-pink:hover{background:#b02070}
+.btn-done:disabled{opacity:0.4;cursor:not-allowed}
+#page-hasil{background:#0d1117}
+.banner{padding:16px 24px;text-align:center;flex-shrink:0;border-bottom:1px solid #263354}
+.banner-label{font-size:11px;color:#7c9ccc;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.banner-winner{font-size:26px;font-weight:700}
+.banner-scores{font-size:12px;color:#7c9ccc;margin-top:6px}
+.banner-times{font-size:11px;color:#4a6fa5;margin-top:4px}
+.winner-yellow{color:#f0c040}
+.winner-pink{color:#f472b6}
+.winner-seri{color:#7c9ccc}
+.hasil-columns{display:flex;flex:1}
+.hasil-col{flex:1;display:flex;flex-direction:column}
+.hasil-col-left{border-right:2px solid #f0c040}
+.pil.highlight-correct{border:2px solid #22c55e;color:#bbf7d0;background:#052e16}
+.pil.highlight-player-correct{background:#1d4ed8;border-color:#60a5fa;color:#bfdbfe}
+.pil.highlight-player-wrong{background:#7f1d1d;border-color:#f87171;color:#fecaca}
+.pil.highlight-correct.highlight-player-correct{background:#1d4ed8;border:2px solid #22c55e;color:#bfdbfe}
+.btn-ulang{display:block;margin:12px auto;padding:10px 36px;background:#1a2333;border:1px solid #263354;border-radius:6px;color:#7c9ccc;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-ulang:hover{background:#263354;color:#aac4ee}
+.time-badge{display:inline-block;background:#1a2333;border:1px solid #263354;border-radius:4px;padding:3px 10px;font-size:10px;color:#7c9ccc;margin-top:4px}
+.time-badge.faster{border-color:#f0c040;color:#f0c040}
+.time-badge.faster-pink{border-color:#f472b6;color:#f472b6}
 </style>
 </head>
 <body>
 
-<!-- ===== HALAMAN SOAL ===== -->
-<div id="page-soal" class="page active">
-  <div class="topbar">
-    <div class="topbar-title">Kuis Bangun Datar</div>
-    <div class="topbar-hint" id="hint-text">Kedua pemain harus menjawab semua soal</div>
-  </div>
-  <div class="columns">
-
-    <!-- PEMAIN 1 (KUNING) -->
-    <div class="col col-left">
-      <div class="col-header col-header-yellow">
-        <div class="col-header-title">PEMAIN 1</div>
-        <div class="col-header-score" id="skor1">Skor: 0 / 5</div>
+<div id="page-mulai" class="page active">
+  <div class="mulai-inner">
+    <div class="mulai-title">Kuis Bangun Datar</div>
+    <div class="mulai-sub">2 Pemain &bull; 5 Soal per Pemain</div>
+    <div class="cara-card">
+      <div class="cara-title">Cara Mengerjakan</div>
+      <div class="cara-list">
+        <div class="cara-item"><div class="cara-num">1</div><div class="cara-text">Kuis ini dimainkan oleh <b>2 pemain secara bersamaan</b> di satu layar. Pemain 1 mengerjakan kolom kiri (kuning), Pemain 2 mengerjakan kolom kanan (pink).</div></div>
+        <div class="cara-item"><div class="cara-num">2</div><div class="cara-text">Setiap pemain mendapat <b>5 soal tentang bangun datar</b> (keliling dan luas). Pilih salah satu jawaban dengan mengetuk pilihan yang benar.</div></div>
+        <div class="cara-item"><div class="cara-num">3</div><div class="cara-text"><b>Timer berjalan</b> sejak kuis dimulai. Waktu masing-masing pemain dicatat saat menekan tombol <b>"Selesai Menjawab"</b>.</div></div>
+        <div class="cara-item"><div class="cara-num">4</div><div class="cara-text">Hasil baru ditampilkan setelah <b>kedua pemain</b> menekan tombol selesai.</div></div>
+        <div class="cara-item"><div class="cara-num">5</div><div class="cara-text">Pemenang ditentukan berdasarkan <b>skor tertinggi</b>. Jika skor <span class="highlight-seri">SERI</span>, pemenang adalah pemain yang <b>lebih cepat</b> menekan selesai.</div></div>
       </div>
-      <div class="soal-list" id="soal-p1"></div>
-      <button class="btn-done" id="btn-done1" disabled onclick="selesai(1)">SELESAI MENJAWAB</button>
     </div>
-
-    <!-- PEMAIN 2 (PINK) -->
-    <div class="col">
-      <div class="col-header col-header-pink">
-        <div class="col-header-title">PEMAIN 2</div>
-        <div class="col-header-score" id="skor2">Skor: 0 / 5</div>
-      </div>
-      <div class="soal-list" id="soal-p2"></div>
-      <button class="btn-done" id="btn-done2" disabled onclick="selesai(2)">SELESAI MENJAWAB</button>
-    </div>
-
+    <button class="btn-mulai" onclick="mulaiKuis()">▶ MULAI KUIS</button>
   </div>
 </div>
 
-<!-- ===== HALAMAN HASIL ===== -->
+<div id="page-soal" class="page">
+  <div class="topbar">
+    <div class="topbar-title">Kuis Bangun Datar</div>
+    <div class="timer-box">
+      <div class="timer-label">Waktu</div>
+      <div class="timer-val" id="timer-display">00:00</div>
+    </div>
+    <div class="topbar-hint" id="hint-text">Kedua pemain harus menjawab semua soal</div>
+  </div>
+  <div class="columns">
+    <div class="col col-left">
+      <div class="col-header col-header-yellow"><div class="col-header-title">PEMAIN 1</div></div>
+      <div class="soal-list" id="soal-p1"></div>
+      <button class="btn-done" id="btn-done1" disabled onclick="selesai(1)">SELESAI MENJAWAB</button>
+    </div>
+    <div class="col">
+      <div class="col-header col-header-pink"><div class="col-header-title">PEMAIN 2</div></div>
+      <div class="soal-list" id="soal-p2"></div>
+      <button class="btn-done" id="btn-done2" disabled onclick="selesai(2)">SELESAI MENJAWAB</button>
+    </div>
+  </div>
+</div>
+
 <div id="page-hasil" class="page">
   <div class="banner">
     <div class="banner-label">Hasil Kuis</div>
     <div class="banner-winner" id="banner-winner"></div>
     <div class="banner-scores" id="banner-scores"></div>
+    <div class="banner-times" id="banner-times"></div>
   </div>
   <div class="hasil-columns">
     <div class="hasil-col hasil-col-left">
       <div class="col-header col-header-yellow">
         <div class="col-header-title">PEMAIN 1</div>
-        <div class="col-header-score" id="hasil-skor1"></div>
+        <div id="hasil-skor1" style="font-size:11px;color:rgba(255,255,255,0.75)"></div>
       </div>
+      <div style="text-align:center;padding:6px 10px 0"><span class="time-badge" id="time-badge1"></span></div>
       <div class="soal-list" id="hasil-p1"></div>
     </div>
     <div class="hasil-col">
       <div class="col-header col-header-pink">
         <div class="col-header-title">PEMAIN 2</div>
-        <div class="col-header-score" id="hasil-skor2"></div>
+        <div id="hasil-skor2" style="font-size:11px;color:rgba(255,255,255,0.75)"></div>
       </div>
+      <div style="text-align:center;padding:6px 10px 0"><span class="time-badge" id="time-badge2"></span></div>
       <div class="soal-list" id="hasil-p2"></div>
     </div>
   </div>
@@ -162,270 +151,331 @@ body { background: #0d1117; font-family: 'Segoe UI', sans-serif; min-height: 100
 </div>
 
 <script>
-// ===== DATA SOAL =====
-const soalP1 = [
-  {
-    num: 1, tipe: 'Persegi', q: 'Sisi: 7 cm &nbsp;|&nbsp; Keliling = ?',
-    pilihan: ['a. 21 cm', 'b. 28 cm', 'c. 49 cm'], jawaban: 1,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <rect x="10" y="4" width="32" height="32" fill="none" stroke="#f0c040" stroke-width="1.5"/>
-      <text x="26" y="44" fill="#e8d5a3" font-size="5.5" text-anchor="middle">7 cm</text>
-      <text x="45" y="22" fill="#e8d5a3" font-size="5.5" text-anchor="start">7 cm</text></svg>`
-  },
-  {
-    num: 2, tipe: 'Persegi Panjang', q: 'Panjang: 9 cm, Lebar: 4 cm &nbsp;|&nbsp; Luas = ?',
-    pilihan: ['a. 26 cm²', 'b. 36 cm²', 'c. 40 cm²'], jawaban: 1,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <rect x="4" y="12" width="48" height="24" fill="none" stroke="#f0c040" stroke-width="1.5"/>
-      <text x="28" y="46" fill="#e8d5a3" font-size="5.5" text-anchor="middle">9 cm</text>
-      <text x="55" y="26" fill="#e8d5a3" font-size="5.5" text-anchor="start">4 cm</text></svg>`
-  },
-  {
-    num: 3, tipe: 'Segitiga Sama Sisi', q: 'Sisi: 6 cm &nbsp;|&nbsp; Keliling = ?',
-    pilihan: ['a. 12 cm', 'b. 18 cm', 'c. 24 cm'], jawaban: 1,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <polygon points="34,3 60,44 8,44" fill="none" stroke="#f0c040" stroke-width="1.5"/>
-      <text x="34" y="50" fill="#e8d5a3" font-size="5.5" text-anchor="middle">6 cm</text>
-      <text x="2" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="start">6 cm</text>
-      <text x="55" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="start">6 cm</text></svg>`
-  },
-  {
-    num: 4, tipe: 'Persegi', q: 'Sisi: 5 cm &nbsp;|&nbsp; Luas = ?',
-    pilihan: ['a. 20 cm²', 'b. 25 cm²', 'c. 30 cm²'], jawaban: 1,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <rect x="12" y="4" width="30" height="30" fill="none" stroke="#f0c040" stroke-width="1.5"/>
-      <text x="27" y="44" fill="#e8d5a3" font-size="5.5" text-anchor="middle">5 cm</text>
-      <text x="45" y="21" fill="#e8d5a3" font-size="5.5" text-anchor="start">5 cm</text></svg>`
-  },
-  {
-    num: 5, tipe: 'Segitiga Siku-siku', q: 'Alas: 8 cm, Tinggi: 5 cm &nbsp;|&nbsp; Luas = ?',
-    pilihan: ['a. 20 cm²', 'b. 40 cm²', 'c. 13 cm²'], jawaban: 0,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <polygon points="16,46 16,4 58,46" fill="none" stroke="#f0c040" stroke-width="1.5"/>
-      <rect x="16" y="40" width="5" height="5" fill="none" stroke="#f0c040" stroke-width="1"/>
-      <text x="37" y="50" fill="#e8d5a3" font-size="5.5" text-anchor="middle">8 cm</text>
-      <text x="4" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="middle" transform="rotate(-90,4,28)">5 cm</text></svg>`
-  }
-];
+// =============================================
+// HELPER
+// =============================================
+function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
 
-const soalP2 = [
-  {
-    num: 1, tipe: 'Persegi', q: 'Sisi: 8 cm &nbsp;|&nbsp; Keliling = ?',
-    pilihan: ['a. 24 cm', 'b. 32 cm', 'c. 64 cm'], jawaban: 1,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <rect x="8" y="3" width="34" height="34" fill="none" stroke="#f472b6" stroke-width="1.5"/>
-      <text x="25" y="45" fill="#e8d5a3" font-size="5.5" text-anchor="middle">8 cm</text>
-      <text x="45" y="22" fill="#e8d5a3" font-size="5.5" text-anchor="start">8 cm</text></svg>`
-  },
-  {
-    num: 2, tipe: 'Persegi Panjang', q: 'Panjang: 10 cm, Lebar: 3 cm &nbsp;|&nbsp; Luas = ?',
-    pilihan: ['a. 26 cm²', 'b. 30 cm²', 'c. 33 cm²'], jawaban: 1,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <rect x="2" y="15" width="56" height="18" fill="none" stroke="#f472b6" stroke-width="1.5"/>
-      <text x="30" y="46" fill="#e8d5a3" font-size="5.5" text-anchor="middle">10 cm</text>
-      <text x="60" y="26" fill="#e8d5a3" font-size="5.5" text-anchor="start">3 cm</text></svg>`
-  },
-  {
-    num: 3, tipe: 'Segitiga Sama Sisi', q: 'Sisi: 9 cm &nbsp;|&nbsp; Keliling = ?',
-    pilihan: ['a. 18 cm', 'b. 27 cm', 'c. 36 cm'], jawaban: 1,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <polygon points="34,3 60,44 8,44" fill="none" stroke="#f472b6" stroke-width="1.5"/>
-      <text x="34" y="50" fill="#e8d5a3" font-size="5.5" text-anchor="middle">9 cm</text>
-      <text x="2" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="start">9 cm</text>
-      <text x="55" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="start">9 cm</text></svg>`
-  },
-  {
-    num: 4, tipe: 'Persegi', q: 'Sisi: 6 cm &nbsp;|&nbsp; Luas = ?',
-    pilihan: ['a. 24 cm²', 'b. 36 cm²', 'c. 42 cm²'], jawaban: 1,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <rect x="10" y="4" width="32" height="32" fill="none" stroke="#f472b6" stroke-width="1.5"/>
-      <text x="26" y="44" fill="#e8d5a3" font-size="5.5" text-anchor="middle">6 cm</text>
-      <text x="45" y="22" fill="#e8d5a3" font-size="5.5" text-anchor="start">6 cm</text></svg>`
-  },
-  {
-    num: 5, tipe: 'Segitiga Siku-siku', q: 'Alas: 10 cm, Tinggi: 6 cm &nbsp;|&nbsp; Luas = ?',
-    pilihan: ['a. 30 cm²', 'b. 60 cm²', 'c. 16 cm²'], jawaban: 0,
-    svg: `<svg width="68" height="50" viewBox="0 0 68 50">
-      <polygon points="16,46 16,4 60,46" fill="none" stroke="#f472b6" stroke-width="1.5"/>
-      <rect x="16" y="40" width="5" height="5" fill="none" stroke="#f472b6" stroke-width="1"/>
-      <text x="38" y="50" fill="#e8d5a3" font-size="5.5" text-anchor="middle">10 cm</text>
-      <text x="4" y="28" fill="#e8d5a3" font-size="5.5" text-anchor="middle" transform="rotate(-90,4,28)">6 cm</text></svg>`
-  }
-];
+// Pilih angka yang berbeda minimal minDiff dari semua angka di excludes
+function rndExclude(min,max,excludes,minDiff=2){
+  let v,tries=0;
+  do{ v=rnd(min,max); tries++; }
+  while(tries<200 && excludes.some(e=>Math.abs(e-v)<minDiff));
+  return v;
+}
 
-// ===== STATE =====
-let jawaban1 = Array(5).fill(null);
-let jawaban2 = Array(5).fill(null);
-let done1 = false, done2 = false;
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
 
-// ===== RENDER SOAL =====
-function renderSoal(container, soalArr, player) {
-  container.innerHTML = '';
-  soalArr.forEach((s, i) => {
-    const div = document.createElement('div');
-    div.className = 'soal';
-    div.id = `soal-p${player}-${i}`;
-    div.innerHTML = `
-      <div class="soal-left">
-        <div class="soal-num">No. ${s.num}</div>
-        <div class="shape-area">${s.svg}</div>
+function buatPilihan(correct, wrong1, wrong2, satuan){
+  // Pastikan ketiga pilihan unik
+  const w1 = wrong1===correct ? correct+2 : wrong1;
+  const w2 = (wrong2===correct||wrong2===w1) ? correct-2 : wrong2;
+  const opts = shuffle([
+    {v:`${correct} ${satuan}`, correct:true},
+    {v:`${w1} ${satuan}`, correct:false},
+    {v:`${w2} ${satuan}`, correct:false}
+  ]);
+  const jawabanIdx = opts.findIndex(o=>o.correct);
+  const labels=['a','b','c'];
+  return { pilihan: opts.map((o,i)=>labels[i]+'. '+o.v), jawaban: jawabanIdx };
+}
+
+// =============================================
+// SVG BUILDERS
+// =============================================
+function svgPersegi(s,color){
+  return `<svg width="96" height="72" viewBox="0 0 96 72">
+    <rect x="14" y="5" width="46" height="46" fill="none" stroke="${color}" stroke-width="2"/>
+    <text x="37" y="63" fill="#e8d5a3" font-size="8" text-anchor="middle">${s} cm</text>
+    <text x="64" y="31" fill="#e8d5a3" font-size="8">${s} cm</text>
+  </svg>`;
+}
+function svgPersegiPanjang(p,l,color){
+  return `<svg width="96" height="72" viewBox="0 0 96 72">
+    <rect x="6" y="17" width="68" height="34" fill="none" stroke="${color}" stroke-width="2"/>
+    <text x="40" y="63" fill="#e8d5a3" font-size="8" text-anchor="middle">${p} cm</text>
+    <text x="77" y="37" fill="#e8d5a3" font-size="8">${l} cm</text>
+  </svg>`;
+}
+function svgSegitigaSamaSisi(s,color){
+  return `<svg width="96" height="72" viewBox="0 0 96 72">
+    <polygon points="48,4 84,64 12,64" fill="none" stroke="${color}" stroke-width="2"/>
+    <text x="48" y="72" fill="#e8d5a3" font-size="8" text-anchor="middle">${s} cm</text>
+    <text x="1" y="40" fill="#e8d5a3" font-size="8">${s} cm</text>
+    <text x="73" y="40" fill="#e8d5a3" font-size="8">${s} cm</text>
+  </svg>`;
+}
+function svgSegitigaSikuSiku(a,t,color){
+  return `<svg width="96" height="72" viewBox="0 0 96 72">
+    <polygon points="16,65 16,9 82,65" fill="none" stroke="${color}" stroke-width="2"/>
+    <rect x="16" y="57" width="8" height="8" fill="none" stroke="${color}" stroke-width="1.5"/>
+    <text x="49" y="72" fill="#e8d5a3" font-size="8" text-anchor="middle">${a} cm</text>
+    <text x="1" y="40" fill="#e8d5a3" font-size="7">${t} cm</text>
+  </svg>`;
+}
+
+// =============================================
+// 5 GENERATOR SOAL (pola fix, angka random)
+// Pool angka: 2-9 agar perkalian < 10x10 = maks 81
+// Keduanya tidak boleh sama tiap nomor
+// =============================================
+
+// No.1 — Keliling Persegi
+// Jawaban benar: 4×s | Jebakan: s×s (luas), 2×s (2 sisi doang)
+function soal1_kelilingPersegi(color, exclude){
+  const s = rndExclude(2,9,[exclude],2);
+  const benar = 4*s;
+  const w1 = s*s;       // jebakan: luas
+  const w2 = 2*s;       // jebakan: hanya 2 sisi
+  const {pilihan,jawaban} = buatPilihan(benar,w1,w2,'cm');
+  return {num:1, tipe:'Persegi', q:`Sisi: ${s} cm &nbsp;|&nbsp; Keliling = ?`, pilihan, jawaban, svg:svgPersegi(s,color), val:s};
+}
+
+// No.2 — Luas Persegi Panjang
+// Jawaban benar: p×l | Jebakan: 2(p+l) (keliling), p+l (setengah keliling)
+function soal2_luasPersegiPanjang(color, excP, excL){
+  const p = rndExclude(3,9,[excP],2);
+  // lebar harus beda dari panjang, dan p×l < 10×10
+  let l;
+  do { l = rndExclude(2,p-1,[excL],1); } while(p*l>81||l===p);
+  const benar = p*l;
+  const w1 = 2*(p+l);   // jebakan: keliling
+  const w2 = p+l;        // jebakan: setengah keliling
+  const {pilihan,jawaban} = buatPilihan(benar,w1,w2,'cm²');
+  return {num:2, tipe:'Persegi Panjang', q:`Panjang: ${p} cm, Lebar: ${l} cm &nbsp;|&nbsp; Luas = ?`, pilihan, jawaban, svg:svgPersegiPanjang(p,l,color), val:p};
+}
+
+// No.3 — Keliling Segitiga Sama Sisi
+// Jawaban benar: 3×s | Jebakan: s×s (bukan rumus ini), 2×s (kurang satu sisi)
+function soal3_kelilingSSS(color, exclude){
+  const s = rndExclude(2,9,[exclude],2);
+  const benar = 3*s;
+  const w1 = s*s;       // jebakan: salah rumus
+  const w2 = 2*s;       // jebakan: 2 sisi saja
+  const {pilihan,jawaban} = buatPilihan(benar,w1,w2,'cm');
+  return {num:3, tipe:'Segitiga Sama Sisi', q:`Sisi: ${s} cm &nbsp;|&nbsp; Keliling = ?`, pilihan, jawaban, svg:svgSegitigaSamaSisi(s,color), val:s};
+}
+
+// No.4 — Luas Persegi
+// Jawaban benar: s×s | Jebakan: 4×s (keliling), 2×s (salah rumus)
+function soal4_luasPersegi(color, exclude){
+  const s = rndExclude(2,9,[exclude],2);
+  const benar = s*s;
+  const w1 = 4*s;       // jebakan: keliling
+  const w2 = 2*s;       // jebakan: salah rumus
+  const {pilihan,jawaban} = buatPilihan(benar,w1,w2,'cm²');
+  return {num:4, tipe:'Persegi', q:`Sisi: ${s} cm &nbsp;|&nbsp; Luas = ?`, pilihan, jawaban, svg:svgPersegi(s,color), val:s};
+}
+
+// No.5 — Luas Segitiga Siku-siku
+// Jawaban benar: (a×t)/2 | Jebakan: a×t (lupa dibagi 2), a+t (salah rumus)
+// Pastikan a×t genap agar hasilnya bulat
+function soal5_luasSegitigaSS(color, excA, excT){
+  let a,t;
+  let tries=0;
+  do {
+    a = rndExclude(2,8,[excA],2);
+    t = rndExclude(2,8,[excT,a],2);
+    tries++;
+  } while((a*t)%2!==0 || a*t>64 || tries>200);
+  const benar = (a*t)/2;
+  const w1 = a*t;       // jebakan: lupa dibagi 2
+  const w2 = a+t;       // jebakan: salah rumus
+  const {pilihan,jawaban} = buatPilihan(benar,w1,w2,'cm²');
+  return {num:5, tipe:'Segitiga Siku-siku', q:`Alas: ${a} cm, Tinggi: ${t} cm &nbsp;|&nbsp; Luas = ?`, pilihan, jawaban, svg:svgSegitigaSikuSiku(a,t,color), val:a};
+}
+
+// =============================================
+// GENERATE SET SOAL: P1 & P2
+// =============================================
+function generateSet(){
+  // Generate P1 dulu
+  const s1_1 = soal1_kelilingPersegi('#f0c040', -99);
+  const s1_2 = soal2_luasPersegiPanjang('#f0c040', -99, -99);
+  const s1_3 = soal3_kelilingSSS('#f0c040', -99);
+  const s1_4 = soal4_luasPersegi('#f0c040', -99);
+  const s1_5 = soal5_luasSegitigaSS('#f0c040', -99, -99);
+  const p1 = [s1_1, s1_2, s1_3, s1_4, s1_5];
+
+  // Generate P2: tiap nomor angkanya beda dari P1
+  const s2_1 = soal1_kelilingPersegi('#f472b6', s1_1.val);
+  // Untuk PP: exclude panjang P1 dan lebar P1
+  // val P1 soal2 adalah panjang, ambil lebar dari soal query (kita simpan di val2)
+  const s2_2 = soal2_luasPersegiPanjang('#f472b6', s1_2.val, -99);
+  const s2_3 = soal3_kelilingSSS('#f472b6', s1_3.val);
+  const s2_4 = soal4_luasPersegi('#f472b6', s1_4.val);
+  const s2_5 = soal5_luasSegitigaSS('#f472b6', s1_5.val, -99);
+  const p2 = [s2_1, s2_2, s2_3, s2_4, s2_5];
+
+  return {p1, p2};
+}
+
+// =============================================
+// STATE & GAME LOGIC
+// =============================================
+let soalP1=[], soalP2=[];
+let jawaban1=Array(5).fill(null), jawaban2=Array(5).fill(null);
+let done1=false, done2=false;
+let timerInterval=null, timerSeconds=0;
+let time1=null, time2=null;
+
+function fmtTime(s){const m=Math.floor(s/60);return String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+
+function mulaiKuis(){
+  const gen = generateSet();
+  soalP1 = gen.p1;
+  soalP2 = gen.p2;
+  jawaban1=Array(5).fill(null); jawaban2=Array(5).fill(null);
+  done1=false; done2=false; time1=null; time2=null;
+
+  renderSoal(document.getElementById('soal-p1'), soalP1, 1);
+  renderSoal(document.getElementById('soal-p2'), soalP2, 2);
+
+  timerSeconds=0;
+  document.getElementById('timer-display').textContent='00:00';
+  timerInterval=setInterval(()=>{
+    timerSeconds++;
+    document.getElementById('timer-display').textContent=fmtTime(timerSeconds);
+  },1000);
+
+  ['btn-done1','btn-done2'].forEach(id=>{
+    const btn=document.getElementById(id);
+    btn.disabled=true; btn.textContent='SELESAI MENJAWAB'; btn.className='btn-done';
+  });
+  document.getElementById('hint-text').textContent='Kedua pemain harus menjawab semua soal';
+  document.getElementById('page-mulai').classList.remove('active');
+  document.getElementById('page-soal').classList.add('active');
+}
+
+function renderSoal(container,soalArr,player){
+  container.innerHTML='';
+  soalArr.forEach((s,i)=>{
+    const div=document.createElement('div');
+    div.className='soal';
+    div.id=`soal-p${player}-${i}`;
+    div.innerHTML=`<div class="soal-left"><div class="soal-num">No. ${s.num}</div><div class="shape-area">${s.svg}</div></div>
+    <div class="soal-right">
+      <div class="soal-tipe">${s.tipe}</div>
+      <div class="soal-q">${s.q}</div>
+      <div class="pilihan-row" id="pil-p${player}-${i}">
+        ${s.pilihan.map((p,j)=>`<div class="pil" onclick="pilih(${player},${i},${j})" id="pil-p${player}-${i}-${j}">${p}</div>`).join('')}
       </div>
-      <div class="soal-right">
-        <div class="soal-tipe">${s.tipe}</div>
-        <div class="soal-q">${s.q}</div>
-        <div class="pilihan-row" id="pil-p${player}-${i}">
-          ${s.pilihan.map((p, j) =>
-            `<div class="pil" onclick="pilih(${player},${i},${j})" id="pil-p${player}-${i}-${j}">${p}</div>`
-          ).join('')}
-        </div>
-      </div>`;
+    </div>`;
     container.appendChild(div);
   });
 }
 
-function pilih(player, soalIdx, pilIdx) {
-  if (player === 1 && done1) return;
-  if (player === 2 && done2) return;
-
-  const jawaban = player === 1 ? jawaban1 : jawaban2;
-  jawaban[soalIdx] = pilIdx;
-
-  // Update visual
-  const row = document.getElementById(`pil-p${player}-${soalIdx}`);
-  const cls = player === 1 ? 'selected-yellow' : 'selected-pink';
-  row.querySelectorAll('.pil').forEach((el, j) => {
-    el.classList.toggle(cls, j === pilIdx);
-  });
-
-  // Update skor display
-  updateSkor(player);
-
-  // Cek tombol selesai
-  const allAnswered = jawaban.every(j => j !== null);
-  const btn = document.getElementById(`btn-done${player}`);
-  btn.disabled = !allAnswered;
-  if (allAnswered) {
-    btn.classList.add(player === 1 ? 'ready-yellow' : 'ready-pink');
-  }
+function pilih(player,soalIdx,pilIdx){
+  if(player===1&&done1)return;
+  if(player===2&&done2)return;
+  const jawaban=player===1?jawaban1:jawaban2;
+  jawaban[soalIdx]=pilIdx;
+  const row=document.getElementById(`pil-p${player}-${soalIdx}`);
+  const cls=player===1?'selected-yellow':'selected-pink';
+  row.querySelectorAll('.pil').forEach((el,j)=>el.classList.toggle(cls,j===pilIdx));
+  const allAnswered=jawaban.every(j=>j!==null);
+  const btn=document.getElementById(`btn-done${player}`);
+  btn.disabled=!allAnswered;
+  if(allAnswered)btn.classList.add(player===1?'ready-yellow':'ready-pink');
 }
 
-function updateSkor(player) {
-  const soalArr = player === 1 ? soalP1 : soalP2;
-  const jawaban = player === 1 ? jawaban1 : jawaban2;
-  const skor = jawaban.reduce((acc, j, i) => acc + (j === soalArr[i].jawaban ? 1 : 0), 0);
-  document.getElementById(`skor${player}`).textContent = `Skor: ${skor} / 5`;
-}
-
-function selesai(player) {
-  if (player === 1) {
-    done1 = true;
-    document.getElementById('btn-done1').disabled = true;
-    document.getElementById('btn-done1').textContent = '✓ PEMAIN 1 SELESAI';
-    // Kunci pilihan
-    document.querySelectorAll(`[id^="pil-p1-"]`).forEach(el => el.style.pointerEvents = 'none');
+function selesai(player){
+  const t=timerSeconds;
+  if(player===1){
+    done1=true; time1=t;
+    document.getElementById('btn-done1').disabled=true;
+    document.getElementById('btn-done1').textContent='✓ PEMAIN 1 SELESAI ('+fmtTime(t)+')';
+    document.querySelectorAll('[id^="pil-p1-"]').forEach(el=>el.style.pointerEvents='none');
   } else {
-    done2 = true;
-    document.getElementById('btn-done2').disabled = true;
-    document.getElementById('btn-done2').textContent = '✓ PEMAIN 2 SELESAI';
-    document.querySelectorAll(`[id^="pil-p2-"]`).forEach(el => el.style.pointerEvents = 'none');
+    done2=true; time2=t;
+    document.getElementById('btn-done2').disabled=true;
+    document.getElementById('btn-done2').textContent='✓ PEMAIN 2 SELESAI ('+fmtTime(t)+')';
+    document.querySelectorAll('[id^="pil-p2-"]').forEach(el=>el.style.pointerEvents='none');
   }
-
-  // Update hint
-  if (done1 && done2) {
-    document.getElementById('hint-text').textContent = 'Semua selesai! Memuat hasil...';
-    setTimeout(tampilHasil, 800);
-  } else if (done1) {
-    document.getElementById('hint-text').textContent = 'Pemain 2 belum selesai menjawab';
+  if(done1&&done2){
+    clearInterval(timerInterval);
+    document.getElementById('hint-text').textContent='Semua selesai! Memuat hasil...';
+    setTimeout(tampilHasil,800);
+  } else if(done1){
+    document.getElementById('hint-text').textContent='Pemain 2 belum selesai menjawab';
   } else {
-    document.getElementById('hint-text').textContent = 'Pemain 1 belum selesai menjawab';
+    document.getElementById('hint-text').textContent='Pemain 1 belum selesai menjawab';
   }
 }
 
-// ===== HALAMAN HASIL =====
-function hitungSkor(soalArr, jawaban) {
-  return jawaban.reduce((acc, j, i) => acc + (j === soalArr[i].jawaban ? 1 : 0), 0);
-}
+function hitungSkor(soalArr,jawaban){return jawaban.reduce((acc,j,i)=>acc+(j===soalArr[i].jawaban?1:0),0)}
 
-function renderHasil(container, soalArr, jawaban, player) {
-  container.innerHTML = '';
-  soalArr.forEach((s, i) => {
-    const div = document.createElement('div');
-    div.className = 'soal';
-    div.innerHTML = `
-      <div class="soal-left">
-        <div class="soal-num">No. ${s.num}</div>
-        <div class="shape-area">${s.svg}</div>
+function renderHasil(container,soalArr,jawaban){
+  container.innerHTML='';
+  soalArr.forEach((s,i)=>{
+    const div=document.createElement('div');
+    div.className='soal';
+    div.innerHTML=`<div class="soal-left"><div class="soal-num">No. ${s.num}</div><div class="shape-area">${s.svg}</div></div>
+    <div class="soal-right">
+      <div class="soal-tipe">${s.tipe}</div>
+      <div class="soal-q">${s.q}</div>
+      <div class="pilihan-row">
+        ${s.pilihan.map((p,j)=>{
+          let cls='pil';
+          const isKey=j===s.jawaban, isPick=j===jawaban[i];
+          if(isKey)cls+=' highlight-correct';
+          if(isPick&&isKey)cls+=' highlight-player-correct';
+          else if(isPick&&!isKey)cls+=' highlight-player-wrong';
+          return `<div class="${cls}">${p}</div>`;
+        }).join('')}
       </div>
-      <div class="soal-right">
-        <div class="soal-tipe">${s.tipe}</div>
-        <div class="soal-q">${s.q}</div>
-        <div class="pilihan-row">
-          ${s.pilihan.map((p, j) => {
-            let cls = 'pil';
-            const isCorrectKey = j === s.jawaban;
-            const isPlayerPick = j === jawaban[i];
-            const isPlayerCorrect = isPlayerPick && isCorrectKey;
-            const isPlayerWrong = isPlayerPick && !isCorrectKey;
-            if (isCorrectKey) cls += ' highlight-correct';
-            if (isPlayerCorrect) cls += ' highlight-player-correct';
-            else if (isPlayerWrong) cls += ' highlight-player-wrong';
-            return `<div class="${cls}">${p}</div>`;
-          }).join('')}
-        </div>
-      </div>`;
+    </div>`;
     container.appendChild(div);
   });
 }
 
-function tampilHasil() {
-  const s1 = hitungSkor(soalP1, jawaban1);
-  const s2 = hitungSkor(soalP2, jawaban2);
-
-  // Banner pemenang
-  const bannerEl = document.getElementById('banner-winner');
-  const scoresEl = document.getElementById('banner-scores');
-  if (s1 > s2) {
-    bannerEl.innerHTML = `🏆 Pemenang: <span class="winner-yellow">PEMAIN 1 (Kuning)</span>`;
-  } else if (s2 > s1) {
-    bannerEl.innerHTML = `🏆 Pemenang: <span class="winner-pink">PEMAIN 2 (Pink)</span>`;
+function tampilHasil(){
+  const s1=hitungSkor(soalP1,jawaban1);
+  const s2=hitungSkor(soalP2,jawaban2);
+  let winnerHtml='', seriByTime=false;
+  if(s1>s2){
+    winnerHtml=`🏆<span class="winner-yellow"> Pemenang: Pemain 1</span>`;
+  } else if(s2>s1){
+    winnerHtml=`🏆<span class="winner-pink"> Pemenang: Pemain 2</span>`;
   } else {
-    bannerEl.innerHTML = `<span class="winner-seri">🤝 Hasil Seri!</span>`;
+    seriByTime=true;
+    if(time1<time2) winnerHtml=`🏆<span class="winner-yellow"> Seri! Lebih cepat: Pemain 1</span>`;
+    else if(time2<time1) winnerHtml=`🏆<span class="winner-pink"> Seri! Lebih cepat: Pemain 2</span>`;
+    else winnerHtml=`<span class="winner-seri">🤝 Benar-benar Seri!</span>`;
   }
-  scoresEl.textContent = `Pemain 1: ${s1}/5 &nbsp;|&nbsp; Pemain 2: ${s2}/5`;
-  document.getElementById('hasil-skor1').textContent = `Skor: ${s1} / 5`;
-  document.getElementById('hasil-skor2').textContent = `Skor: ${s2} / 5`;
-
-  // Render review
-  renderHasil(document.getElementById('hasil-p1'), soalP1, jawaban1, 1);
-  renderHasil(document.getElementById('hasil-p2'), soalP2, jawaban2, 2);
-
-  // Switch halaman
+  document.getElementById('banner-winner').innerHTML=winnerHtml;
+  document.getElementById('banner-scores').textContent=`Pemain 1: ${s1}/5   |   Pemain 2: ${s2}/5`;
+  document.getElementById('banner-times').textContent=`Waktu Pemain 1: ${fmtTime(time1)}   |   Waktu Pemain 2: ${fmtTime(time2)}${seriByTime?' ditentukan dari kecepatan':''}`;
+  document.getElementById('hasil-skor1').textContent=`Skor: ${s1} / 5`;
+  document.getElementById('hasil-skor2').textContent=`Skor: ${s2} / 5`;
+  const b1=document.getElementById('time-badge1');
+  const b2=document.getElementById('time-badge2');
+  b1.textContent='Waktu: '+fmtTime(time1);
+  b2.textContent='Waktu: '+fmtTime(time2);
+  if(seriByTime&&time1<time2)b1.classList.add('faster');
+  if(seriByTime&&time2<time1)b2.classList.add('faster-pink');
+  renderHasil(document.getElementById('hasil-p1'),soalP1,jawaban1);
+  renderHasil(document.getElementById('hasil-p2'),soalP2,jawaban2);
   document.getElementById('page-soal').classList.remove('active');
   document.getElementById('page-hasil').classList.add('active');
 }
 
-function ulang() {
-  jawaban1 = Array(5).fill(null);
-  jawaban2 = Array(5).fill(null);
-  done1 = false; done2 = false;
-  document.getElementById('skor1').textContent = 'Skor: 0 / 5';
-  document.getElementById('skor2').textContent = 'Skor: 0 / 5';
-  document.getElementById('hint-text').textContent = 'Kedua pemain harus menjawab semua soal';
-  document.getElementById('btn-done1').disabled = true;
-  document.getElementById('btn-done1').textContent = 'SELESAI MENJAWAB';
-  document.getElementById('btn-done1').className = 'btn-done';
-  document.getElementById('btn-done2').disabled = true;
-  document.getElementById('btn-done2').textContent = 'SELESAI MENJAWAB';
-  document.getElementById('btn-done2').className = 'btn-done';
-  renderSoal(document.getElementById('soal-p1'), soalP1, 1);
-  renderSoal(document.getElementById('soal-p2'), soalP2, 2);
+function ulang(){
+  jawaban1=Array(5).fill(null); jawaban2=Array(5).fill(null);
+  done1=false; done2=false; time1=null; time2=null;
+  clearInterval(timerInterval);
+  document.getElementById('hint-text').textContent='Kedua pemain harus menjawab semua soal';
+  ['btn-done1','btn-done2'].forEach(id=>{
+    const btn=document.getElementById(id);
+    btn.disabled=true; btn.textContent='SELESAI MENJAWAB'; btn.className='btn-done';
+  });
   document.getElementById('page-hasil').classList.remove('active');
-  document.getElementById('page-soal').classList.add('active');
+  document.getElementById('page-mulai').classList.add('active');
 }
-
-// ===== INIT =====
-renderSoal(document.getElementById('soal-p1'), soalP1, 1);
-renderSoal(document.getElementById('soal-p2'), soalP2, 2);
 </script>
 </body>
 </html>
