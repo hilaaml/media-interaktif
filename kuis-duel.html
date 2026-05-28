@@ -166,6 +166,25 @@ body{
 
 <script>
 // =============================================
+// SOUND EFFECT
+// =============================================
+const sfxClick = new Audio('https://hilaaml.github.io/media-interaktif/click.mp3');
+const sfxWin = new Audio('https://hilaaml.github.io/media-interaktif/win.mp3');
+
+sfxClick.preload = 'auto';
+sfxWin.preload = 'auto';
+
+function playClick(){
+  sfxClick.currentTime = 0;
+  sfxClick.play().catch(()=>{});
+}
+
+function playWin(){
+  sfxWin.currentTime = 0;
+  sfxWin.play().catch(()=>{});
+}
+  
+// =============================================
 // HELPER
 // =============================================
 function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
@@ -448,6 +467,8 @@ function renderHasil(container,soalArr,jawaban){
 }
 
 function tampilHasil(){
+  playWin();
+  
   const s1=hitungSkor(soalP1,jawaban1);
   const s2=hitungSkor(soalP2,jawaban2);
   let winnerHtml='', seriByTime=false;
@@ -490,6 +511,10 @@ function ulang(){
   document.getElementById('page-hasil').classList.remove('active');
   document.getElementById('page-mulai').classList.add('active');
 }
+
+document.addEventListener('click', () => {
+  playClick();
+});
 </script>
 </body>
 </html>
