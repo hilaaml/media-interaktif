@@ -43,14 +43,22 @@ body{
 .timer-label{font-size:11px;color:#4a6fa5;letter-spacing:1px;text-transform:uppercase}
 .timer-val{font-size:18px;font-weight:700;color:#f0c040;font-variant-numeric:tabular-nums;min-width:60px;text-align:center}
 .topbar-hint{font-size:11px;color:#4a6fa5}
-.columns{display:flex;flex:1}
+.columns{
+  display:flex;
+  align-items:flex-start
+}
 .col{flex:1;display:flex;flex-direction:column}
 .col-left{border-right:2px solid #f0c040}
 .col-header{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
 .col-header-yellow{background:#b8860b}
 .col-header-pink{background:#9b2060}
 .col-header-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:0.5px}
-.soal-list{flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:8px}
+.soal-list{
+  padding:8px 10px 0;
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
 .soal{background:#161f2e;border:0.5px solid #263354;border-radius:6px;padding:8px 10px;display:flex;gap:8px}
 .soal-left{display:flex;flex-direction:column;gap:2px;flex-shrink:0;align-items:center;justify-content:center;width:100px}
 .soal-num{font-size:10px;color:#4a6fa5;font-weight:600;text-align:center;margin-bottom:2px}
@@ -63,7 +71,10 @@ body{
 .pil:hover{background:#1a2d50;border-color:#4a6fa5;color:#aac4ee}
 .pil.selected-yellow{background:#b8860b;border-color:#f0c040;color:#fff5cc}
 .pil.selected-pink{background:#9b2060;border-color:#f472b6;color:#ffe4f0}
-.btn-done{display:block;width:calc(100% - 20px);margin:8px 10px;padding:10px;background:#1a2333;border:1px solid #263354;border-radius:6px;color:#4a6fa5;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-done{
+  display:block;
+  width:calc(100% - 20px);
+  margin:0 10px 10px;padding:10px;background:#1a2333;border:1px solid #263354;border-radius:6px;color:#4a6fa5;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
 .btn-done:hover{background:#263354;color:#7c9ccc}
 .btn-done.ready-yellow{background:#b8860b;border-color:#f0c040;color:#fff5cc}
 .btn-done.ready-yellow:hover{background:#d4a017}
