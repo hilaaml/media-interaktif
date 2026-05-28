@@ -271,7 +271,7 @@ function svgSegitigaSikuSiku(a,t,color){
 // No.1 — Keliling Persegi
 // Jawaban benar: 4×s | Jebakan: s×s (luas), 2×s (2 sisi doang)
 function soal1_kelilingPersegi(color, exclude){
-  const s = rndExclude(2,9,[exclude],2);
+  const s = rndExclude(2,4,[exclude],2);
   const benar = 4*s;
   const w1 = s*s;       // jebakan: luas
   const w2 = 2*s;       // jebakan: hanya 2 sisi
@@ -296,7 +296,7 @@ function soal2_luasPersegiPanjang(color, excP, excL){
 // No.3 — Keliling Segitiga Sama Sisi
 // Jawaban benar: 3×s | Jebakan: s×s (bukan rumus ini), 2×s (kurang satu sisi)
 function soal3_kelilingSSS(color, exclude){
-  const s = rndExclude(2,9,[exclude],2);
+  const s = rndExclude(2,4,[exclude],2);
   const benar = 3*s;
   const w1 = s*s;       // jebakan: salah rumus
   const w2 = 2*s;       // jebakan: 2 sisi saja
@@ -307,7 +307,7 @@ function soal3_kelilingSSS(color, exclude){
 // No.4 — Luas Persegi
 // Jawaban benar: s×s | Jebakan: 4×s (keliling), 2×s (salah rumus)
 function soal4_luasPersegi(color, exclude){
-  const s = rndExclude(2,9,[exclude],2);
+  const s = rndExclude(2,4,[exclude],2);
   const benar = s*s;
   const w1 = 4*s;       // jebakan: keliling
   const w2 = 2*s;       // jebakan: salah rumus
@@ -322,8 +322,8 @@ function soal5_luasSegitigaSS(color, excA, excT){
   let a,t;
   let tries=0;
   do {
-    a = rndExclude(2,8,[excA],2);
-    t = rndExclude(2,8,[excT,a],2);
+    a = rndExclude(2,4,[excA],2);
+    t = rndExclude(2,4,[excT,a],2);
     tries++;
   } while((a*t)%2!==0 || a*t>64 || tries>200);
   const benar = (a*t)/2;
