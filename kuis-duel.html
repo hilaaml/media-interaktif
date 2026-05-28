@@ -175,17 +175,21 @@ body{
     <div class="hasil-col hasil-col-left">
       <div class="col-header col-header-yellow">
         <div class="col-header-title">PEMAIN 1</div>
-        <div id="hasil-skor1" style="font-size:11px;color:rgba(255,255,255,0.75)"></div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div id="hasil-skor1" style="font-size:11px;color:rgba(255,255,255,0.75)"></div>
+          <div id="hasil-time1" style="font-size:11px;color:rgba(255,255,255,0.75)"></div>
+        </div>
       </div>
-      <div style="text-align:center;padding:6px 10px 0"><span class="time-badge" id="time-badge1"></span></div>
       <div class="soal-list" id="hasil-p1"></div>
     </div>
     <div class="hasil-col">
       <div class="col-header col-header-pink">
         <div class="col-header-title">PEMAIN 2</div>
-        <div id="hasil-skor2" style="font-size:11px;color:rgba(255,255,255,0.75)"></div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div id="hasil-skor2" style="font-size:11px;color:rgba(255,255,255,0.75)"></div>
+          <div id="hasil-time2" style="font-size:11px;color:rgba(255,255,255,0.75)"></div>
+        </div>
       </div>
-      <div style="text-align:center;padding:6px 10px 0"><span class="time-badge" id="time-badge2"></span></div>
       <div class="soal-list" id="hasil-p2"></div>
     </div>
   </div>
@@ -513,12 +517,21 @@ function tampilHasil(){
   document.getElementById('banner-winner').innerHTML=winnerHtml;
   document.getElementById('hasil-skor1').textContent=`Skor: ${s1} / 5`;
   document.getElementById('hasil-skor2').textContent=`Skor: ${s2} / 5`;
-  const b1=document.getElementById('time-badge1');
-  const b2=document.getElementById('time-badge2');
-  b1.textContent='Waktu: '+fmtTime(time1);
-  b2.textContent='Waktu: '+fmtTime(time2);
-  if(seriByTime&&time1<time2)b1.classList.add('faster');
-  if(seriByTime&&time2<time1)b2.classList.add('faster-pink');
+  const t1=document.getElementById('hasil-time1');
+  const t2=document.getElementById('hasil-time2');
+  
+  t1.textContent='⏱ '+fmtTime(time1);
+  t2.textContent='⏱ '+fmtTime(time2);
+  
+  if(seriByTime&&time1<time2){
+    t1.style.color='#f0c040';
+    t1.style.fontWeight='700';
+  }
+  
+  if(seriByTime&&time2<time1){
+    t2.style.color='#f472b6';
+    t2.style.fontWeight='700';
+  }
   renderHasil(document.getElementById('hasil-p1'),soalP1,jawaban1);
   renderHasil(document.getElementById('hasil-p2'),soalP2,jawaban2);
   document.getElementById('page-soal').classList.remove('active');
