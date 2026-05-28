@@ -511,8 +511,6 @@ function tampilHasil(){
     else winnerHtml=`<span class="winner-seri">🤝 Benar-benar Seri!</span>`;
   }
   document.getElementById('banner-winner').innerHTML=winnerHtml;
-  document.getElementById('banner-scores').textContent=`Pemain 1: ${s1}/5   |   Pemain 2: ${s2}/5`;
-  document.getElementById('banner-times').textContent=`Waktu Pemain 1: ${fmtTime(time1)}   |   Waktu Pemain 2: ${fmtTime(time2)}${seriByTime?' ditentukan dari kecepatan':''}`;
   document.getElementById('hasil-skor1').textContent=`Skor: ${s1} / 5`;
   document.getElementById('hasil-skor2').textContent=`Skor: ${s2} / 5`;
   const b1=document.getElementById('time-badge1');
