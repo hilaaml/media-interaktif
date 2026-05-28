@@ -90,14 +90,31 @@ body{
 .winner-yellow{color:#f0c040}
 .winner-pink{color:#f472b6}
 .winner-seri{color:#7c9ccc}
-.hasil-columns{display:flex;flex:1}
+.hasil-columns{
+  display:flex;
+  align-items:flex-start;
+}
 .hasil-col{flex:1;display:flex;flex-direction:column}
 .hasil-col-left{border-right:2px solid #f0c040}
 .pil.highlight-correct{border:2px solid #22c55e;color:#bbf7d0;background:#052e16}
 .pil.highlight-player-correct{background:#1d4ed8;border-color:#60a5fa;color:#bfdbfe}
 .pil.highlight-player-wrong{background:#7f1d1d;border-color:#f87171;color:#fecaca}
 .pil.highlight-correct.highlight-player-correct{background:#1d4ed8;border:2px solid #22c55e;color:#bfdbfe}
-.btn-ulang{display:block;margin:12px auto;padding:10px 36px;background:#1a2333;border:1px solid #263354;border-radius:6px;color:#7c9ccc;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-ulang{
+  display:block;
+  margin:0 auto;
+  padding:10px 36px;
+  background:#1a2333;
+  border:1px solid #263354;
+  border-radius:6px;
+  color:#7c9ccc;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.2s
+}
 .btn-ulang:hover{background:#263354;color:#aac4ee}
 .time-badge{display:inline-block;background:#1a2333;border:1px solid #263354;border-radius:4px;padding:3px 10px;font-size:10px;color:#7c9ccc;margin-top:4px}
 .time-badge.faster{border-color:#f0c040;color:#f0c040}
